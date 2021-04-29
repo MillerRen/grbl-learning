@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/MillerRen/grbl-learning/issues"
   },
-  "homepage": "https://github.com/MillerRen/grbl-learning#readme"
+  "homepage": "https://github.com/MillerRen/grbl-learning#readme",
+  "devDependencies": {
+    "vuepress": "^1.8.2"
+  }
 }
