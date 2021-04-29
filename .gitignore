@@ -4,3 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 node_modules
+docs/.vuepress/dist
