@@ -1,5 +1,7 @@
-#include "uart.h"
+#include "serial.h"
 
+// grbl串口操作案例
+// 声明：本实例由任羽飞编写，禁止抄袭，转载请说明出处
 
 uint8_t serial_tx_buffer[TX_RING_BUFFER_SIZE+1];
 uint8_t serial_tx_buffer_head = 0;
@@ -10,7 +12,7 @@ uint8_t serial_rx_buffer_head = 0;
 volatile uint8_t serial_rx_buffer_tail = 0;
 
 // 初始化串口波特率为115200，8位无奇偶校验1停止位，开启接收，发送功能和接收完成中断
-void uart_init () {
+void serial_init () {
     uint16_t baud_prescaler = F_CPU / (8L*BAUD_RATE) - 1;
     UCSR0A |= (1<<U2X0);
     
@@ -20,7 +22,8 @@ void uart_init () {
     UCSR0B |= (1<<RXEN0|1<<TXEN0|1<<RXCIE0);
 }
 
-void uart_write (uint8_t data) {
+// 写入发送环形队列
+void serial_write (uint8_t data) {
     uint8_t next_head = serial_tx_buffer_head + 1;
     if(next_head == TX_RING_BUFFER_SIZE) {
         next_head = 0;
@@ -36,7 +39,8 @@ void uart_write (uint8_t data) {
     UCSR0B |= (1<<UDRIE0);
 }
 
-uint8_t uart_read () {
+// 从接收环形队列读取数据
+uint8_t serial_read () {
     uint8_t tail = serial_rx_buffer_tail;
     if (serial_rx_buffer_head == tail) {
         return SERIAL_NO_DATA;
@@ -53,6 +57,13 @@ uint8_t uart_read () {
     return data;
 }
 
+void printString(const char *s)
+{
+  while (*s)
+    serial_write(*s++);
+}
+
+// 串口接收数据完成，把数据保存到接收环形队列
 ISR(USART_RX_vect) {
     uint8_t data = UDR0;
     uint8_t next_head = serial_rx_buffer_head + 1;
@@ -63,6 +74,7 @@ ISR(USART_RX_vect) {
     serial_rx_buffer_head = next_head;
 }
 
+// 串口数据寄存器为空时，从发送环形队列得到数据并发送到串口
 ISR(USART_UDRE_vect) {
     uint8_t tail = serial_tx_buffer_tail;
     UDR0 = serial_tx_buffer[tail];
@@ -77,8 +89,4 @@ ISR(USART_UDRE_vect) {
     }
 }
 
-void printString(const char *s)
-{
-  while (*s)
-    uart_write(*s++);
-}
+
