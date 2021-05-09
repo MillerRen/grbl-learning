@@ -136,7 +136,7 @@ ISR(SERIAL_UDRE)
   if (tail == serial_tx_buffer_head) { UCSR0B &= ~(1 << UDRIE0); }
 }
 
-// 从串口读缓冲区里获取第一个字节。被主程序调用
+// 从串口读缓冲区里获取第一个字节。被主程序调用 
 // Fetches the first byte in the serial read buffer. Called by main program.
 uint8_t serial_read()
 {

@@ -18,4 +18,6 @@ uint8_t serial_read();
 
 void serial_write(uint8_t data);
 
+void serial_reset_read_buffer();
+
 void printString(const char *s);

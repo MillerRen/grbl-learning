@@ -39,7 +39,7 @@ void serial_write (uint8_t data) {
     UCSR0B |= (1<<UDRIE0);
 }
 
-// 从接收环形队列读取数据
+// 从接收环形队列读取数据 
 uint8_t serial_read () {
     uint8_t tail = serial_rx_buffer_tail;
     if (serial_rx_buffer_head == tail) {
@@ -57,6 +57,11 @@ uint8_t serial_read () {
     return data;
 }
 
+void serial_reset_read_buffer()
+{
+  serial_rx_buffer_tail = serial_rx_buffer_head;
+}
+
 void printString(const char *s)
 {
   while (*s)
@@ -70,8 +75,11 @@ ISR(USART_RX_vect) {
     if (next_head == RX_RING_BUFFER_SIZE) {
         next_head = 0;
     }
-    serial_rx_buffer[serial_rx_buffer_head] = data;
-    serial_rx_buffer_head = next_head;
+    if (next_head != serial_rx_buffer_tail)
+    {
+        serial_rx_buffer[serial_rx_buffer_head] = data;
+        serial_rx_buffer_head = next_head;
+    }    
 }
 
 // 串口数据寄存器为空时，从发送环形队列得到数据并发送到串口

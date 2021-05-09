@@ -15,17 +15,22 @@ int main (void) {
 
     while (1)
     {
+        
         // 从串口读取代码行
         while((c=serial_read())!=SERIAL_NO_DATA) {
+            // serial_write(c);
+            if ((c=='\r'||(c=='\n')))
+            {
+                // printString(line);
+                char_counter = 0; 
+            } else {
             line[char_counter++] = c;
-        }
-        if (char_counter) {
-            // 发送读取的代码行到串口
-            printString(line);
-        }
-        char_counter = 0;   
-        
-        
+            }
+            
+        } 
+        if(char_counter)
+        printString(line);
+        char_counter=0;
     }
     
 }
