@@ -74,6 +74,8 @@
   #define LIMIT_INT_vect   PCINT0_vect
   #define LIMIT_PCMSK      PCMSK0 // Pin change interrupt register
 
+  // 定义用户控制的输入引脚（启动循环，重置，进给保持）
+  // 注意：所有控制引脚必须在同一端口，并且不能覆盖其他引脚定义（如限位开关）
   // Define user-control controls (cycle start, reset, feed hold) input pins.
   // NOTE: All CONTROLs pins must be on the same port and not on a port with other input pins (limits).
   #define CONTROL_DDR       DDRC
@@ -83,11 +85,11 @@
   #define CONTROL_FEED_HOLD_BIT     1  // Uno Analog Pin 1
   #define CONTROL_CYCLE_START_BIT   2  // Uno Analog Pin 2
   #define CONTROL_SAFETY_DOOR_BIT   1  // Uno Analog Pin 1 NOTE: Safety door is shared with feed hold. Enabled by config define.
-  #define CONTROL_INT       PCIE1  // Pin change interrupt enable pin
-  #define CONTROL_INT_vect  PCINT1_vect
-  #define CONTROL_PCMSK     PCMSK1 // Pin change interrupt register
+  #define CONTROL_INT       PCIE1  // Pin change interrupt enable pin 引脚变化使能
+  #define CONTROL_INT_vect  PCINT1_vect // 引脚变化中断向量
+  #define CONTROL_PCMSK     PCMSK1 // Pin change interrupt register 引脚变化中断寄存器
   #define CONTROL_MASK      ((1<<CONTROL_RESET_BIT)|(1<<CONTROL_FEED_HOLD_BIT)|(1<<CONTROL_CYCLE_START_BIT)|(1<<CONTROL_SAFETY_DOOR_BIT))
-  #define CONTROL_INVERT_MASK   CONTROL_MASK // May be re-defined to only invert certain control pins.
+  #define CONTROL_INVERT_MASK   CONTROL_MASK // May be re-defined to only invert certain control pins. 可能充定义为仅反转确定的引脚
 
   // Define probe switch input pin.
   #define PROBE_DDR       DDRC

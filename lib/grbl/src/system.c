@@ -23,13 +23,18 @@
 
 void system_init()
 {
+  // 配置作为输入引脚
   CONTROL_DDR &= ~(CONTROL_MASK); // Configure as input pins
   #ifdef DISABLE_CONTROL_PIN_PULL_UP
+    // 如果禁用了内置的上拉使用低电平有效操作，则需要外部接下拉电阻
     CONTROL_PORT &= ~(CONTROL_MASK); // Normal low operation. Requires external pull-down.
   #else
+    // 如果使用内置上拉电阻，则高电平有效
     CONTROL_PORT |= CONTROL_MASK;   // Enable internal pull-up resistors. Normal high operation.
   #endif
+  // 开启指定引脚变化的中断
   CONTROL_PCMSK |= CONTROL_MASK;  // Enable specific pins of the Pin Change Interrupt
+  // 使能引脚变化
   PCICR |= (1 << CONTROL_INT);   // Enable Pin Change Interrupt
 }
 
@@ -56,7 +61,8 @@ uint8_t system_control_get_state()
   return(control_state);
 }
 
-
+// 引脚变化中断处理，例如启动循环，进给保持，重置等。
+// 只设置实时命令执行变量以便主程序中执行他们。这精确的执行从串口流直接捡取的类似基于字符的实时命令。
 // Pin change interrupt for pin-out commands, i.e. cycle start, feed hold, and reset. Sets
 // only the realtime command execute variable to have the main program execute these when
 // its ready. This works exactly like the character-based realtime commands when picked off
@@ -123,11 +129,12 @@ void system_execute_startup(char *line)
 uint8_t system_execute_line(char *line)
 {
   uint8_t char_counter = 1;
-  uint8_t helper_var = 0; // Helper variable
+  uint8_t helper_var = 0; // Helper variable 辅助变量
   float parameter, value;
   switch( line[char_counter] ) {
-    case 0 : report_grbl_help(); break;
-    case 'J' : // Jogging
+    case 0 : report_grbl_help(); break; // 报告帮助信息
+    case 'J' : // Jogging 手动模式
+      // 仅在IDLE或JOG状态下执行
       // Execute only if in IDLE or JOG states.
       if (sys.state != STATE_IDLE && sys.state != STATE_JOG) { return(STATUS_IDLE_ERROR); }
       if(line[2] != '=') { return(STATUS_INVALID_STATEMENT); }
@@ -136,15 +143,16 @@ uint8_t system_execute_line(char *line)
     case '$': case 'G': case 'C': case 'X':
       if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
       switch( line[1] ) {
-        case '$' : // Prints Grbl settings
+        case '$' : // Prints Grbl settings 打印Grbl设置
           if ( sys.state & (STATE_CYCLE | STATE_HOLD) ) { return(STATUS_IDLE_ERROR); } // Block during cycle. Takes too long to print.
           else { report_grbl_settings(); }
           break;
-        case 'G' : // Prints gcode parser state
+        case 'G' : // Prints gcode parser state 打印G代码解析状态
+          // 待办：移动这个到实时命令给GUI在延迟状态请求这个数据
           // TODO: Move this to realtime commands for GUIs to request this data during suspend-state.
           report_gcode_modes();
           break;
-        case 'C' : // Set check g-code mode [IDLE/CHECK]
+        case 'C' : // Set check g-code mode [IDLE/CHECK] 设置检查G代码模式
           // Perform reset when toggling off. Check g-code mode should only work if Grbl
           // is idle and ready, regardless of alarm locks. This is mainly to keep things
           // simple and consistent.
@@ -157,7 +165,7 @@ uint8_t system_execute_line(char *line)
             report_feedback_message(MESSAGE_ENABLED);
           }
           break;
-        case 'X' : // Disable alarm lock [ALARM]
+        case 'X' : // Disable alarm lock [ALARM] 取消警报锁定
           if (sys.state == STATE_ALARM) {
             // Block if safety door is ajar.
             if (system_check_safety_door_ajar()) { return(STATUS_CHECK_DOOR); }
@@ -172,11 +180,11 @@ uint8_t system_execute_line(char *line)
       // Block any system command that requires the state as IDLE/ALARM. (i.e. EEPROM, homing)
       if ( !(sys.state == STATE_IDLE || sys.state == STATE_ALARM) ) { return(STATUS_IDLE_ERROR); }
       switch( line[1] ) {
-        case '#' : // Print Grbl NGC parameters
+        case '#' : // Print Grbl NGC parameters 打印Grbl NGC参数
           if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
           else { report_ngc_parameters(); }
           break;
-        case 'H' : // Perform homing cycle [IDLE/ALARM]
+        case 'H' : // Perform homing cycle [IDLE/ALARM] 执行归位
           if (bit_isfalse(settings.flags,BITFLAG_HOMING_ENABLE)) {return(STATUS_SETTING_DISABLED); }
           if (system_check_safety_door_ajar()) { return(STATUS_CHECK_DOOR); } // Block if safety door is ajar.
           sys.state = STATE_HOMING; // Set system state variable
@@ -198,7 +206,7 @@ uint8_t system_execute_line(char *line)
             if (line[2] == 0) { system_execute_startup(line); }
           }
           break;
-        case 'S' : // Puts Grbl to sleep [IDLE/ALARM]
+        case 'S' : // Puts Grbl to sleep [IDLE/ALARM] 使Grbl进入睡眠状态
           if ((line[2] != 'L') || (line[3] != 'P') || (line[4] != 0)) { return(STATUS_INVALID_STATEMENT); }
           system_set_exec_state_flag(EXEC_SLEEP); // Set to execute sleep mode immediately
           break;
@@ -207,7 +215,7 @@ uint8_t system_execute_line(char *line)
             settings_read_build_info(line);
             report_build_info(line);
           #ifdef ENABLE_BUILD_INFO_WRITE_COMMAND
-            } else { // Store startup line [IDLE/ALARM]
+            } else { // Store startup line [IDLE/ALARM] 储存启动脚本
               if(line[char_counter++] != '=') { return(STATUS_INVALID_STATEMENT); }
               helper_var = char_counter; // Set helper variable as counter to start of user info line.
               do {
@@ -217,7 +225,7 @@ uint8_t system_execute_line(char *line)
           #endif
           }
           break;
-        case 'R' : // Restore defaults [IDLE/ALARM]
+        case 'R' : // Restore defaults [IDLE/ALARM] 恢复默认设置
           if ((line[2] != 'S') || (line[3] != 'T') || (line[4] != '=') || (line[6] != 0)) { return(STATUS_INVALID_STATEMENT); }
           switch (line[5]) {
             #ifdef ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS
@@ -234,7 +242,7 @@ uint8_t system_execute_line(char *line)
           report_feedback_message(MESSAGE_RESTORE_DEFAULTS);
           mc_reset(); // Force reset to ensure settings are initialized correctly.
           break;
-        case 'N' : // Startup lines. [IDLE/ALARM]
+        case 'N' : // Startup lines. [IDLE/ALARM] 设置启动脚本
           if ( line[++char_counter] == 0 ) { // Print startup lines
             for (helper_var=0; helper_var < N_STARTUP_LINE; helper_var++) {
               if (!(settings_read_startup_line(helper_var, line))) {
