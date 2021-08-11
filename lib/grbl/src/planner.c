@@ -222,14 +222,14 @@ void plan_discard_current_block()
   }
 }
 
-
+// 返回系统运动所使用的计划器缓冲区块的地址。 由段生成器调用。
 // Returns address of planner buffer block used by system motions. Called by segment generator.
 plan_block_t *plan_get_system_motion_block()
 {
   return(&block_buffer[block_buffer_head]);
 }
 
-
+// 如果可以返回规划器第一个块的地址。被一系列主程序函数调用。
 // Returns address of first planner block, if available. Called by various main program functions.
 plan_block_t *plan_get_current_block()
 {
@@ -255,6 +255,7 @@ uint8_t plan_check_full_buffer()
 
 
 // Computes and returns block nominal speed based on running condition and override values.
+// 计算和返回基于运行中条件和覆写值得
 // NOTE: All system motion commands, such as homing/parking, are not subject to overrides.
 float plan_compute_profile_nominal_speed(plan_block_t *block)
 {
@@ -298,7 +299,16 @@ void plan_update_velocity_profile_parameters()
 }
 
 
-/* Add a new linear movement to the buffer. target[N_AXIS] is the signed, absolute target position
+/* 
+  添加一个线性运动到缓冲区。target[N_AXIS]是带符号的，绝对目标位置，以毫米为单位。进给率指定了运动速度。
+  如果进料速率颠倒，则进料速率表示“频率”，将在1/进料速率分钟内完成操作。
+  传递给规划器的所有位置数据必须根据机器位置保持规划器独立于任何坐标系统更改和偏移，这些更改和偏移由g-code解析器处理。
+  注意：假设缓冲区可用。 缓冲区检查由motion_control在更高级别处理。  换句话说，缓冲头永远不等于缓冲尾。
+  此外，馈电速率输入值以三种方式使用:
+  如果invert_feed_rate为假，则作为正常馈电速率;
+  如果invert_feed_rate为真，则作为逆时间;如果feed_rate为负，则作为seek/rapids速率(且invert_feed_rate始终为假)。  
+  系统运动条件告诉规划者在始终未使用的块缓冲头中计划一个运动。 它避免了改变规划器的状态，并保留缓冲区，以确保后续的gcode动作仍然正确规划，而步进模块只指向块缓冲区头执行特殊的系统动作。   
+    Add a new linear movement to the buffer. target[N_AXIS] is the signed, absolute target position
    in millimeters. Feed rate specifies the speed of the motion. If feed rate is inverted, the feed
    rate is taken to mean "frequency" and would complete the operation in 1/feed_rate minutes.
    All position data passed to the planner must be in terms of machine position to keep the planner
@@ -315,8 +325,9 @@ void plan_update_velocity_profile_parameters()
 uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
 {
   // Prepare and initialize new block. Copy relevant pl_data for block execution.
+  // 准备初始化新块，拷贝相关的pl_data给块执行。
   plan_block_t *block = &block_buffer[block_buffer_head];
-  memset(block,0,sizeof(plan_block_t)); // Zero all block values.
+  memset(block,0,sizeof(plan_block_t)); // Zero all block values. 所有块值归零
   block->condition = pl_data->condition;
   #ifdef VARIABLE_SPINDLE
     block->spindle_speed = pl_data->spindle_speed;
@@ -326,11 +337,13 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
   #endif
 
   // Compute and store initial move distance data.
+  // 计算和储存初始的移动距离数据
   int32_t target_steps[N_AXIS], position_steps[N_AXIS];
   float unit_vec[N_AXIS], delta_mm;
   uint8_t idx;
 
   // Copy position data based on type of motion being planned.
+  // 根据计划的运动类型复制位置数据。 
   if (block->condition & PL_COND_FLAG_SYSTEM_MOTION) { 
     #ifdef COREXY
       position_steps[X_AXIS] = system_convert_corexy_to_x_axis_steps(sys_position);
@@ -349,6 +362,9 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
   #endif
 
   for (idx=0; idx<N_AXIS; idx++) {
+    // 计算目标位置的绝对步长，每个轴的步长数，并确定最大步长事件。 
+    // 此外，计算独立轴距离的移动和准备单位矢量计算。  
+    // 注意:计算从转换的步长值的真实距离。  
     // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
     // Also, compute individual axes distance for move and prep unit vector calculations.
     // NOTE: Computes true distance from converted step values.
@@ -366,26 +382,37 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
         delta_mm = (target_steps[idx] - position_steps[idx])/settings.steps_per_mm[idx];
       }
     #else
+      // target是轴移动的距离，单位是毫米，系统设定了steps_per_mm值，也就是每毫米代表的轴移动步数，直接换算得到轴移动步数target_steps
       target_steps[idx] = lround(target[idx]*settings.steps_per_mm[idx]);
+      // target表示轴从原点移动到终点的总距离，所以当前线段的移动步数需要用target减去之前所有线段移动的总步数
       block->steps[idx] = labs(target_steps[idx]-position_steps[idx]);
+      //获得三个轴里移动距离最远的轴移动的距离，后面直线插补时会用到这个值。关于插补算法的方法后面会介绍
       block->step_event_count = max(block->step_event_count, block->steps[idx]);
+      //获得三个轴里移动距离最远的轴移动的距离，后面DDA直线插补时会用到这个值。关于DDA插补算法的方法后面会介绍
       delta_mm = (target_steps[idx] - position_steps[idx])/settings.steps_per_mm[idx];
 	  #endif
-    unit_vec[idx] = delta_mm; // Store unit vector numerator
+    unit_vec[idx] = delta_mm; // Store unit vector numerator 储存单位向量分子
 
     // Set direction bits. Bit enabled always means direction is negative.
+    // 这个值小于零，说明这个轴需要向与原来方向相反的方向移动
     if (delta_mm < 0.0 ) { block->direction_bits |= get_direction_pin_mask(idx); }
   }
 
   // Bail if this is a zero-length block. Highly unlikely to occur.
+  // 如果这是零长度的块，就退出。 不太可能发生。  
   if (block->step_event_count == 0) { return(PLAN_EMPTY_BLOCK); }
 
+  // 计算直线移动的单位矢量和块的最大进给速率和加速度,按比例缩小，这样就不会超过相对于直线方向的单个轴的最大值。
+  // 注意:这个计算假设所有的轴都是正交的(笛卡尔)，并且适用于abc轴。
+  // 如果它们也是正交/独立的。 作用于单位向量的绝对值。
   // Calculate the unit vector of the line move and the block maximum feed rate and acceleration scaled
   // down such that no individual axes maximum values are exceeded with respect to the line direction.
   // NOTE: This calculation assumes all axes are orthogonal (Cartesian) and works with ABC-axes,
   // if they are also orthogonal/independent. Operates on the absolute value of the unit vector.
   block->millimeters = convert_delta_vector_to_unit_vector(unit_vec);
+  // 最大加速度取三个轴中最小的那个
   block->acceleration = limit_value_by_axis_maximum(settings.acceleration, unit_vec);
+  // 最大速度取三个轴中最小的那个
   block->rapid_rate = limit_value_by_axis_maximum(settings.max_rate, unit_vec);
 
   // Store programmed rate.
@@ -396,14 +423,32 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
   }
 
   // TODO: Need to check this method handling zero junction speeds when starting from rest.
+  // 待办事项:需要检查从静止开始时处理零结点速度的方法。  
   if ((block_buffer_head == block_buffer_tail) || (block->condition & PL_COND_FLAG_SYSTEM_MOTION)) {
-
+    // 初始化块进入速度为零。假设从静止开始。 规划器稍后会更正这一点。 
+    // 如果系统运动，系统运动块总是假定从静止开始并在完全停止时结束。
     // Initialize block entry speed as zero. Assume it will be starting from rest. Planner will correct this later.
     // If system motion, the system motion block always is assumed to start from rest and end at a complete stop.
     block->entry_speed_sqr = 0.0;
     block->max_junction_speed_sqr = 0.0; // Starting from rest. Enforce start from zero velocity.
 
   } else {
+    /**
+     * 用向心加速度近似计算最大允许进入速度。
+     * 设一个圆与先前的和当前的路径线段相切，其中结偏差定义为从结到最近的圆边缘的距离，与圆心共线。  
+     * 连接两条路径的圆段表示向心加速度的路径。 
+     * 根据绕圆半径的最大加速度求解最大速度，该加速度由结的偏差间接定义。  
+     * 在之前的Grbl版本中，这也可以看作是路径宽度或max_jerk。
+     * 这种方法实际上不会偏离路径，但作为一种稳健的方法来计算转弯速度，因为它考虑了交点角和交点速度的非线性。 
+     * 注:如果结偏差值是有限的，Grbl以精确路径模式(G61)进行运动。
+     * 如果结偏差值为零，Grbl将以精确停止模式(G61.1)的方式执行运动。
+     * 在未来，如果想要连续模式(G64)，这里的数学是完全相同的。 
+     * 机器不会一直移动到连接点，它只会沿着这里定义的圆弧。 
+     * Arduino没有执行连续模式路径的CPU周期，但基于arm的微控制器肯定有。  
+     * 
+     * 注意:最大连接速度是一个固定值，因为机器的加速限制不能在运行过程中动态改变，也不能移动线的几何形状。
+     * 当进给速度覆盖改变块的标称速度时，这必须保存在内存中，这可能改变所有块的整体最大进入速度条件。
+     **/
     // Compute maximum allowable entry speed at junction by centripetal acceleration approximation.
     // Let a circle be tangent to both previous and current path line segments, where the junction
     // deviation is defined as the distance from the junction to the closest edge of the circle,
@@ -429,16 +474,25 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
     float junction_unit_vec[N_AXIS];
     float junction_cos_theta = 0.0;
     for (idx=0; idx<N_AXIS; idx++) {
+      //计算两条线段的夹角余弦值，夹角余弦公式cosa=(x1*x2+y1*y2+z1*z2)/(s1*s2)，因为两条线段是首尾相连，那么用两条线段的向量坐标计算出来的夹角其实是它的补角，夹角和它补角的余弦值刚好取负值即可，所以下面计算夹角余弦的方法里多了一个负号 
       junction_cos_theta -= pl.previous_unit_vec[idx]*unit_vec[idx];
       junction_unit_vec[idx] = unit_vec[idx]-pl.previous_unit_vec[idx];
     }
 
+    // 注意:不用任何昂贵的三角函数sin()或acos()，通过半角角恒等式cos()来计算。
+    // cosθ=(x1*x2+y1*y2+z1*z2)/(s1*s2)
+    // sin(θ/2)=±sqrt((1-cosθ)/2) 
+    // r = δ*sin(θ/2)/(1-sin(θ/2))
+    // v*v = a*r
+    // v = sqrt(a*r)
     // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
     if (junction_cos_theta > 0.999999) {
+      // 对于0度急转弯，只需设置最小转弯速度即可。 
       //  For a 0 degree acute junction, just set minimum junction speed.
       block->max_junction_speed_sqr = MINIMUM_JUNCTION_SPEED*MINIMUM_JUNCTION_SPEED;
     } else {
       if (junction_cos_theta < -0.999999) {
+        // 交接处是一条直线或180度。 连接速度是无限的。  
         // Junction is a straight line or 180 degrees. Junction speed is infinite.
         block->max_junction_speed_sqr = SOME_LARGE_VALUE;
       } else {

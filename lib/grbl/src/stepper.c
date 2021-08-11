@@ -147,6 +147,7 @@ static st_block_t *st_prep_block;  // Pointer to the stepper block data being pr
 
 // Segment preparation data struct. Contains all the necessary information to compute new segments
 // based on the current executing planner block.
+// 段准备数据结构。 包含基于当前执行计划器块计算新段所需的所有信息。 
 typedef struct {
   uint8_t st_block_index;  // Index of stepper common data block being prepped
   uint8_t recalculate_flag;
@@ -192,6 +193,9 @@ static st_prep_t prep;
                                        |
                   time ----->      EXAMPLE: Block 2 entry speed is at max junction velocity
 
+  规划器快缓冲的规划假设恒定的加速度速度剖面并且持续地加入在上面展示出的块节点中。但是规划器仅仅活跃在计算块进入速度上
+  用来优化规划速度，但是不会计算块内部速度剖面。当他们被执行时，这些速度剖面是被步进算法临时计算的。
+  一共有7种可能的剖面：匀速，匀速减速，加速匀速，加速，减速，梯形，三角形。
   The planner block buffer is planned assuming constant acceleration velocity profiles and are
   continuously joined at block junctions as shown above. However, the planner only actively computes
   the block entry speeds for an optimal velocity plan, but does not compute the block internal
@@ -212,7 +216,7 @@ static st_prep_t prep;
                     ^           ^                                           ^  ^
                     |           |                                           |  |
                 accelerate_until(in mm)                             accelerate_until(in mm)
-
+  步骤段缓冲区计算执行块速度剖面并跟踪临界参数为步进算法精确跟踪轮廓。 这些临界参数在上面的插图上展示定义。 
   The step segment buffer computes the executing block velocity profile and tracks the critical
   parameters for the stepper algorithm to accurately trace the profile. These critical parameters
   are shown and defined in the above illustration.
@@ -221,6 +225,8 @@ static st_prep_t prep;
 
 // Stepper state initialization. Cycle should only start if the st.cycle_start flag is
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
+// 步进电机状态初始化。循环应该仅仅在st.cycle_start标记使能时开始。
+// 启动脚本和限位调用这个函数，但是不会启动循环。
 void st_wake_up()
 {
   // Enable stepper drivers.
@@ -246,26 +252,58 @@ void st_wake_up()
 }
 
 
-// Stepper shutdown
+// Stepper shutdown 步进电机关机
 void st_go_idle()
 {
   // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
-  TIMSK1 &= ~(1<<OCIE1A); // Disable Timer1 interrupt
-  TCCR1B = (TCCR1B & ~((1<<CS12) | (1<<CS11))) | (1<<CS10); // Reset clock to no prescaling.
+  // 禁用步进电机驱动器中断。如果激活，允许步进电机端口重置中断完成。
+  TIMSK1 &= ~(1<<OCIE1A); // Disable Timer1 interrupt 禁用定时器1中断
+  TCCR1B = (TCCR1B & ~((1<<CS12) | (1<<CS11))) | (1<<CS10); // Reset clock to no prescaling.重置时钟为没有预分频
   busy = false;
 
   // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
+  // 根据设置和环境设置步进电机驱动器为空闲，禁用，启用。
   bool pin_state = false; // Keep enabled.
   if (((settings.stepper_idle_lock_time != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
     // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
     // stop and not drift from residual inertial forces at the end of the last movement.
+    // 强制步进电机停留一段确定的时间来锁定轴，以确保轴完全停止，并在最后一次运动结束时不偏离剩余惯性力
     delay_ms(settings.stepper_idle_lock_time);
-    pin_state = true; // Override. Disable steppers.
+    pin_state = true; // Override. Disable steppers. 覆写禁用步进电机
   }
-  if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { pin_state = !pin_state; } // Apply pin invert.
+  if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { pin_state = !pin_state; } // Apply pin invert.应用引脚反转
   if (pin_state) { STEPPERS_DISABLE_PORT |= (1<<STEPPERS_DISABLE_BIT); }
   else { STEPPERS_DISABLE_PORT &= ~(1<<STEPPERS_DISABLE_BIT); }
 }
+
+/*
+ 步进电机驱动器中断，这个定时器中断是Grbl的主力。Grbl 采用了古老的Bresenham直线算法来管理和精确同步多轴运动。
+ 不像流行的DDA算法，Bresenham算法不受浮点值取舍误差的影响，并且只需要快速的整数计数器，这意味着低计算开销和
+ 最大化Arduino能力。但是Bresenham算法的缺点是在某些多轴运动中，非主导轴可能会出现不平滑的不仅脉冲序列或锯齿
+ 会导致可以听见的奇怪的噪音或震动。这在低频运动（0-5千赫兹）是尤为明显，但是在高频下通常不会导致物理问题，虽然能听见。
+ 为了改进Bresnham多轴性能，Grbl使用我们称之为自适应多轴步进平滑的算法(AMASS)，顾名思义。
+ 在较低的步进频率下，AMASS认为地提高Bresenham算法的精度而不影响它固有的精度。
+ AMASS根据步骤频率自动调整其分辨率级别,这意味着即使是更低的步频,步骤平滑级别也会增加。
+ 在算法上，AMASS是通过对每个AMASS级别的Bresenham步数进行简单的位移动来实现的。
+ 例如：对于级别1步数平滑，我们移动一位Bresenham步数，等于它乘以2，其他州也一样，然后加倍步进电机ISR频率。
+ 实际上，我们允许非主导的Bresenham轴在中间的ISR周期，而主导轴是每两个ISR周期，而不是传统意义上的每一个ISR周期。
+ 在级别2上，我们简单的再移动一位，因此非主导轴可以再4个ISR周期的任意一个周期步进，主导轴每4个周期步进,并将其ISR频率放大4倍。等等。
+ 这实际上消除了Bresenham算法的多轴锯齿问题，并没有显著改变Grbl的性能，但实际上，在所有配置中更有效地利用了未使用的CPU周期。
+  不管AMASS级别如何，AMASS都要求始终执行完整的Bresenham步骤，从而保持Bresenham算法的准确性。 
+  这意味着对于AMASS Level 2，必须完成所有四个中间步骤，以便始终保持基线Bresenham (Level 0)计数。类似地，AMASS Level 3意味着必须执行所有八个中间步骤。  
+  虽然AMASS级别实际上是任意的，在这里基线Bresenham计数可以乘以任何整数值，但通过位移位整型运算，2的幂乘只是简单地用于减少CPU开销。
+
+  这个中断在设计上是简单而愚蠢的。所有计算上的繁重工作，如确定加速度，都在其他地方进行。 
+  这个中断从步进段缓冲器中弹出预先计算的段，定义为在n个步长内以恒定速度运行，然后通过Bresenham算法脉冲步进相应的管脚来执行它们。
+  该ISR支持通过步进端口重置中断，用于在每个脉冲后重置步进端口。Bresenham线跟踪算法使用两个中断同时控制所有步进电机输出。
+
+  注意:这个中断必须尽可能高效，在下一个ISR tick之前完成，这对于Grbl来说必须小于33.3微秒 (@30kHz ISR速率)。
+  示波器在ISR中测量的时间典型值是5微秒和最大25微秒，远远低于要求。 
+  注意:这个ISR期望每个段至少执行一个步骤。
+
+  代办：以某种方式替换ISR中int32位置计数器的直接更新。 也许只在段完成时使用更小的int8变量和更新位置计数器。  
+  这可能会变得复杂，因为探测和归位周期需要真正的实时位置。
+*/
 
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
@@ -318,51 +356,65 @@ void st_go_idle()
 // with probing and homing cycles that require true real-time positions.
 ISR(TIMER1_COMPA_vect)
 {
-  if (busy) { return; } // The busy-flag is used to avoid reentering this interrupt
+  if (busy) { return; } // The busy-flag is used to avoid reentering this interrupt 这个busy标记用来阻止重新进入这个中断 
 
   // Set the direction pins a couple of nanoseconds before we step the steppers
+  // 在驱动步进电机之前几纳秒设置引脚方向。
   DIRECTION_PORT = (DIRECTION_PORT & ~DIRECTION_MASK) | (st.dir_outbits & DIRECTION_MASK);
   #ifdef ENABLE_DUAL_AXIS
     DIRECTION_PORT_DUAL = (DIRECTION_PORT_DUAL & ~DIRECTION_MASK_DUAL) | (st.dir_outbits_dual & DIRECTION_MASK_DUAL);
   #endif
 
   // Then pulse the stepping pins
+  // 然后输出脉冲到步进引脚
   #ifdef STEP_PULSE_DELAY
     st.step_bits = (STEP_PORT & ~STEP_MASK) | st.step_outbits; // Store out_bits to prevent overwriting.
     #ifdef ENABLE_DUAL_AXIS
       st.step_bits_dual = (STEP_PORT_DUAL & ~STEP_MASK_DUAL) | st.step_outbits_dual;
     #endif
-  #else  // Normal operation
+  #else  // Normal operation 常规操作
     STEP_PORT = (STEP_PORT & ~STEP_MASK) | st.step_outbits;
     #ifdef ENABLE_DUAL_AXIS
       STEP_PORT_DUAL = (STEP_PORT_DUAL & ~STEP_MASK_DUAL) | st.step_outbits_dual;
     #endif
   #endif
 
+  // 启用步进脉冲重置定时器以便步进电机端口重置中断可以在精确的脉冲时间（微秒）后重置信号，独立于主定时器1预分频器。
   // Enable step pulse reset timer so that The Stepper Port Reset Interrupt can reset the signal after
   // exactly settings.pulse_microseconds microseconds, independent of the main Timer1 prescaler.
-  TCNT0 = st.step_pulse_time; // Reload Timer0 counter
-  TCCR0B = (1<<CS01); // Begin Timer0. Full speed, 1/8 prescaler
+  TCNT0 = st.step_pulse_time; // Reload Timer0 counter 重加载定时器0计数器
+  TCCR0B = (1<<CS01); // Begin Timer0. Full speed, 1/8 prescaler 开始定时器0.全速，1/8预分频
 
   busy = true;
-  sei(); // Re-enable interrupts to allow Stepper Port Reset Interrupt to fire on-time.
-         // NOTE: The remaining code in this ISR will finish before returning to main program.
+  sei(); 
+  // 重新启用总中断以允许步进端口重置中断及时触发。
+  // 注意：这里ISR剩下的代码将会在返回主程序前完成。
+  // Re-enable interrupts to allow Stepper Port Reset Interrupt to fire on-time.
+  // NOTE: The remaining code in this ISR will finish before returning to main program.
 
   // If there is no step segment, attempt to pop one from the stepper buffer
+  // 如果没有步进段，尝试从步进缓冲器弹出一个。
   if (st.exec_segment == NULL) {
+    // 缓冲区里有什么吗? 如果有，加载并初始化下一个步骤段。
     // Anything in the buffer? If so, load and initialize next step segment.
     if (segment_buffer_head != segment_buffer_tail) {
       // Initialize new step segment and load number of steps to execute
+      // 初始化一个新的步骤段并加载要执行的步进。
       st.exec_segment = &segment_buffer[segment_buffer_tail];
 
       #ifndef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
         // With AMASS is disabled, set timer prescaler for segments with slow step frequencies (< 250Hz).
+        // 在禁用AMASS的情况下，为慢频率(< 250Hz)的段设置定时器预分频器。  
         TCCR1B = (TCCR1B & ~(0x07<<CS10)) | (st.exec_segment->prescaler<<CS10);
       #endif
 
       // Initialize step segment timing per step and load number of steps to execute.
+      // 初始化每个步进的步进段计时，并加载要执行的步骤数。
       OCR1A = st.exec_segment->cycles_per_tick;
+      // 注意：当移动缓慢时有可能为0
       st.step_count = st.exec_segment->n_step; // NOTE: Can sometimes be zero when moving slow.
+      // 如果新段启动一个新规划器块，初始化步进电机变量和计数器
+      // 注意:当段数据索引更改时，这表示一个新的规划器块。  
       // If the new segment starts a new planner block, initialize stepper variables and counters.
       // NOTE: When the segment data index changes, this indicates a new planner block.
       if ( st.exec_block_index != st.exec_segment->st_block_index ) {
@@ -370,6 +422,7 @@ ISR(TIMER1_COMPA_vect)
         st.exec_block = &st_block_buffer[st.exec_block_index];
 
         // Initialize Bresenham line and distance counters
+        // 初始化Bresenham线和距离计数器
         st.counter_x = st.counter_y = st.counter_z = (st.exec_block->step_event_count >> 1);
       }
       st.dir_outbits = st.exec_block->direction_bits ^ dir_port_invert_mask;
@@ -378,6 +431,7 @@ ISR(TIMER1_COMPA_vect)
       #endif
 
       #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+        // 启用AMASS后，根据AMASS级别调整breresenham轴增量计数器。 
         // With AMASS enabled, adjust Bresenham axis increment counters according to AMASS level.
         st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
         st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
@@ -390,14 +444,16 @@ ISR(TIMER1_COMPA_vect)
       #endif
 
     } else {
+      // 段缓冲器空。关闭电机。
       // Segment buffer empty. Shutdown.
       st_go_idle();
       #ifdef VARIABLE_SPINDLE
         // Ensure pwm is set properly upon completion of rate-controlled motion.
         if (st.exec_block->is_pwm_rate_adjusted) { spindle_set_speed(SPINDLE_PWM_OFF_VALUE); }
       #endif
+      // 将主程序标记为周期结束
       system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
-      return; // Nothing to do but exit.
+      return; // Nothing to do but exit.只能退出
     }
   }
 
@@ -405,12 +461,13 @@ ISR(TIMER1_COMPA_vect)
   // Check probing state.
   if (sys_probe_state == PROBE_ACTIVE) { probe_state_monitor(); }
 
-  // Reset step out bits.
+  // Reset step out bits.重置步进输出位
   st.step_outbits = 0;
   #ifdef ENABLE_DUAL_AXIS
     st.step_outbits_dual = 0;
   #endif
 
+  // 采用Bresenham线算法执行步进位移破面。
   // Execute step displacement profile by Bresenham line algorithm
   #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     st.counter_x += st.steps[X_AXIS];
@@ -452,6 +509,7 @@ ISR(TIMER1_COMPA_vect)
     else { sys_position[Z_AXIS]++; }
   }
 
+  // 在归位周期中，锁定并防止所需的轴移动。 
   // During a homing cycle, lock out and prevent desired axes from moving.
   if (sys.state == STATE_HOMING) { 
     st.step_outbits &= sys.homing_axis_lock;
@@ -460,14 +518,15 @@ ISR(TIMER1_COMPA_vect)
     #endif
   }
 
-  st.step_count--; // Decrement step events count
+  st.step_count--; // Decrement step events count 递减步进事件计数。
   if (st.step_count == 0) {
+    // 段完成。丢弃当前段并推进段索引
     // Segment is complete. Discard current segment and advance segment indexing.
     st.exec_segment = NULL;
     if ( ++segment_buffer_tail == SEGMENT_BUFFER_SIZE) { segment_buffer_tail = 0; }
   }
 
-  st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
+  st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask 应用步进端口反转掩码
   #ifdef ENABLE_DUAL_AXIS
     st.step_outbits_dual ^= step_port_invert_mask_dual;
   #endif
@@ -654,6 +713,15 @@ static uint8_t st_next_block_index(uint8_t block_index)
 
 /* Prepares step segment buffer. Continuously called from main program.
 
+  准备步进段缓冲。被主程序持续调用。
+
+  段缓冲区是步进算法执行步进和规划器生成的速度剖面之间的中间缓冲区接口。 
+  步进算法只在段缓冲区内执行步骤，当步骤从规划器缓冲区中的第一个块“检出”时，主程序将填充这些步骤。 
+  这使步骤执行和计划优化流程保持原子性，并相互保护。  
+  从规划器缓冲区“签出”的步骤数和段缓冲区中的段数的大小和计算，使主程序中的任何操作所花费的时间都不超过步进算法在填充它之前清空它所花费的时间。 
+  目前，段缓冲区保守地保存大约40-50毫秒的步长。 
+  注意:计算单位为步、毫米和分钟。   
+
    The segment buffer is an intermediary buffer interface between the execution of steps
    by the stepper algorithm and the velocity profiles generated by the planner. The stepper
    algorithm only executes steps within the segment buffer and is filled by the main program
@@ -667,19 +735,22 @@ static uint8_t st_next_block_index(uint8_t block_index)
 */
 void st_prep_buffer()
 {
+  // 当处于挂起状态且没有挂起动作要执行时，阻塞步骤准备缓冲区。
   // Block step prep buffer, while in a suspend state and there is no suspend motion to execute.
   if (bit_istrue(sys.step_control,STEP_CONTROL_END_MOTION)) { return; }
 
-  while (segment_buffer_tail != segment_next_head) { // Check if we need to fill the buffer.
+  while (segment_buffer_tail != segment_next_head) { // Check if we need to fill the buffer. 检查是否需要填充缓冲区
 
+    // 确定是否需要加载一个新的规划器块，或者是否需要重新计算该块。
     // Determine if we need to load a new planner block or if the block needs to be recomputed.
     if (pl_block == NULL) {
 
-      // Query planner for a queued block
+      // Query planner for a queued block 为队列块查询规划器
       if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) { pl_block = plan_get_system_motion_block(); }
       else { pl_block = plan_get_current_block(); }
-      if (pl_block == NULL) { return; } // No planner blocks. Exit.
+      if (pl_block == NULL) { return; } // No planner blocks. Exit. 没有规划器块，退出。
 
+      // 检查我们是否只需要重新计算速度剖面或者加载一个新的块。 
       // Check if we need to only recompute the velocity profile or load a new block.
       if (prep.recalculate_flag & PREP_FLAG_RECALCULATE) {
 
@@ -693,11 +764,13 @@ void st_prep_buffer()
       } else {
 
         // Load the Bresenham stepping data for the block.
+        // 加载块的Bresenham步进数据。  
         prep.st_block_index = st_next_block_index(prep.st_block_index);
 
         // Prepare and copy Bresenham algorithm segment data from the new planner block, so that
         // when the segment buffer completes the planner block, it may be discarded when the
         // segment buffer finishes the prepped block, but the stepper ISR is still executing it.
+        // 从新的规划器块中准备并复制Bresenham算法的段数据，以便当段缓冲区完成规划器块时，当段缓冲区完成准备块时，它可能被丢弃，但步进器ISR仍在执行它。  
         st_prep_block = &st_block_buffer[prep.st_block_index];
         st_prep_block->direction_bits = pl_block->direction_bits;
         #ifdef ENABLE_DUAL_AXIS
@@ -717,18 +790,22 @@ void st_prep_buffer()
           // With AMASS enabled, simply bit-shift multiply all Bresenham data by the max AMASS
           // level, such that we never divide beyond the original data anywhere in the algorithm.
           // If the original data is divided, we can lose a step from integer roundoff.
+          // 启用了AMASS，只需将所有的Bresenham数据乘以最大的AMASS级别，这样我们就不会在算法的任何地方除原始数据。  
+          // 如果对原始数据进行除法，就会从整数舍入中损失一个步进。  
           for (idx=0; idx<N_AXIS; idx++) { st_prep_block->steps[idx] = pl_block->steps[idx] << MAX_AMASS_LEVEL; }
           st_prep_block->step_event_count = pl_block->step_event_count << MAX_AMASS_LEVEL;
         #endif
 
         // Initialize segment buffer data for generating the segments.
+        // 初始化段缓冲区数据以生成段。
         prep.steps_remaining = (float)pl_block->step_event_count;
         prep.step_per_mm = prep.steps_remaining/pl_block->millimeters;
         prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR/prep.step_per_mm;
-        prep.dt_remainder = 0.0; // Reset for new segment block
+        prep.dt_remainder = 0.0; // Reset for new segment block 重置新的段块
 
         if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || (prep.recalculate_flag & PREP_FLAG_DECEL_OVERRIDE)) {
           // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
+          // 新区块中途加载。 覆写计划器块进入速度以强制减速。 
           prep.current_speed = prep.exit_speed;
           pl_block->entry_speed_sqr = prep.exit_speed*prep.exit_speed;
           prep.recalculate_flag &= ~(PREP_FLAG_DECEL_OVERRIDE);
@@ -751,14 +828,16 @@ void st_prep_buffer()
       }
 
 			/* ---------------------------------------------------------------------------------
+       根据新的规划块的进入和退出速度计算其速度剖面图，或者重新计算已部分完成的规划块的剖面图(如果规划器更新了它)。  
+       对于一个命令的强制减速，例如从一个进给保持，覆盖计划速度和减速到目标出口速度。
 			 Compute the velocity profile of a new planner block based on its entry and exit
 			 speeds, or recompute the profile of a partially-completed planner block if the
 			 planner has updated it. For a commanded forced-deceleration, such as from a feed
 			 hold, override the planner velocities and decelerate to the target exit speed.
 			*/
-			prep.mm_complete = 0.0; // Default velocity profile complete at 0.0mm from end of block.
-			float inv_2_accel = 0.5/pl_block->acceleration;
-			if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) { // [Forced Deceleration to Zero Velocity]
+			prep.mm_complete = 0.0; // Default velocity profile complete at 0.0mm from end of block. 默认速度剖面到块结束时速度为0
+			float inv_2_accel = 0.5/pl_block->acceleration; // 1/2a
+			if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) { // [Forced Deceleration to Zero Velocity] 强制减速到0
 				// Compute velocity profile parameters for a feed hold in-progress. This profile overrides
 				// the planner block profile, enforcing a deceleration to zero speed.
 				prep.ramp_type = RAMP_DECEL;
@@ -771,15 +850,15 @@ void st_prep_buffer()
 					prep.mm_complete = decel_dist; // End of feed hold.
 					prep.exit_speed = 0.0;
 				}
-			} else { // [Normal Operation]
+			} else { // [Normal Operation] 常规操作
 				// Compute or recompute velocity profile parameters of the prepped planner block.
-				prep.ramp_type = RAMP_ACCEL; // Initialize as acceleration ramp.
-				prep.accelerate_until = pl_block->millimeters;
+				prep.ramp_type = RAMP_ACCEL; // Initialize as acceleration ramp. 初始化为加速斜线
+				prep.accelerate_until = pl_block->millimeters; // 加速到的位置
 
-				float exit_speed_sqr;
-				float nominal_speed;
+				float exit_speed_sqr; // 退出速度的平方
+				float nominal_speed; // 标称速度
         if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
-          prep.exit_speed = exit_speed_sqr = 0.0; // Enforce stop at end of system motion.
+          prep.exit_speed = exit_speed_sqr = 0.0; // Enforce stop at end of system motion.强制在系统运动结束时停止。
         } else {
           exit_speed_sqr = plan_get_exec_block_exit_speed_sqr();
           prep.exit_speed = sqrt(exit_speed_sqr);
@@ -792,12 +871,13 @@ void st_prep_buffer()
 
         if (pl_block->entry_speed_sqr > nominal_speed_sqr) { // Only occurs during override reductions.
           prep.accelerate_until = pl_block->millimeters - inv_2_accel*(pl_block->entry_speed_sqr-nominal_speed_sqr);
-          if (prep.accelerate_until <= 0.0) { // Deceleration-only.
+          if (prep.accelerate_until <= 0.0) { // Deceleration-only. 只有减速
             prep.ramp_type = RAMP_DECEL;
             // prep.decelerate_after = pl_block->millimeters;
             // prep.maximum_speed = prep.current_speed;
 
             // Compute override block exit speed since it doesn't match the planner exit speed.
+            // 计算覆盖块退出速度，因为它不匹配规划器退出速度。  
             prep.exit_speed = sqrt(pl_block->entry_speed_sqr - 2*pl_block->acceleration*pl_block->millimeters);
             prep.recalculate_flag |= PREP_FLAG_DECEL_OVERRIDE; // Flag to load next block as deceleration override.
 
@@ -806,16 +886,18 @@ void st_prep_buffer()
             // Also, look into near-zero speed handling issues with this.
 
           } else {
+            // 减速到匀速或匀减速,保证与更新的计划相交。
             // Decelerate to cruise or cruise-decelerate types. Guaranteed to intersect updated plan.
             prep.decelerate_after = inv_2_accel*(nominal_speed_sqr-exit_speed_sqr); // Should always be >= 0.0 due to planner reinit.
             prep.maximum_speed = nominal_speed;
             prep.ramp_type = RAMP_DECEL_OVERRIDE;
           }
 				} else if (intersect_distance > 0.0) {
-					if (intersect_distance < pl_block->millimeters) { // Either trapezoid or triangle types
+					if (intersect_distance < pl_block->millimeters) { // Either trapezoid or triangle types 梯形或三角形类型
 						// NOTE: For acceleration-cruise and cruise-only types, following calculation will be 0.0.
+            // 注意：为了加速-巡航和巡航类型，下面的计算将会变成0.0.
 						prep.decelerate_after = inv_2_accel*(nominal_speed_sqr-exit_speed_sqr);
-						if (prep.decelerate_after < intersect_distance) { // Trapezoid type
+						if (prep.decelerate_after < intersect_distance) { // Trapezoid type 梯形剖面
 							prep.maximum_speed = nominal_speed;
 							if (pl_block->entry_speed_sqr == nominal_speed_sqr) {
 								// Cruise-deceleration or cruise-only type.
@@ -824,12 +906,12 @@ void st_prep_buffer()
 								// Full-trapezoid or acceleration-cruise types
 								prep.accelerate_until -= inv_2_accel*(nominal_speed_sqr-pl_block->entry_speed_sqr);
 							}
-						} else { // Triangle type
+						} else { // Triangle type 三角形剖面
 							prep.accelerate_until = intersect_distance;
 							prep.decelerate_after = intersect_distance;
 							prep.maximum_speed = sqrt(2.0*pl_block->acceleration*intersect_distance+exit_speed_sqr);
 						}
-					} else { // Deceleration-only type
+					} else { // Deceleration-only type 只减速剖面
             prep.ramp_type = RAMP_DECEL;
             // prep.decelerate_after = pl_block->millimeters;
             // prep.maximum_speed = prep.current_speed;
@@ -846,13 +928,22 @@ void st_prep_buffer()
       #endif
     }
     
-    // Initialize new segment
+    // Initialize new segment 初始化一个新段
     segment_t *prep_segment = &segment_buffer[segment_buffer_head];
 
     // Set new segment to point to the current segment data block.
+    // 设置一个新的段只想当前段数据块
     prep_segment->st_block_index = prep.st_block_index;
 
     /*------------------------------------------------------------------------------------
+      通过确定在分段时间DT_SEGMENT上所走过的总距离来计算这个新分段的平均速度。  
+      下面的代码首先尝试基于当前的斜坡条件创建一个完整的分段。
+      如果在斜坡状态更改时终止时段时间不完整，则代码将继续循环遍历进行中的斜坡状态以填充剩余的段执行时间。
+      但是，如果不完整的段在速度曲线的末尾终止，则尽管截断的执行时间小于 DT_SEGMENT，但仍认为该段已完成。
+
+      速度曲线始终假定通过斜坡序列进行：加速斜坡、巡航状态和减速斜坡。
+      每个斜坡的行进距离的范围可以从零到块的长度。
+      速度剖面可以在规划块的末端(典型的)或强制减速的中间块的末端结束，例如从进给保持。 
         Compute the average velocity of this new segment by determining the total distance
       traveled over the segment time DT_SEGMENT. The following code first attempts to create
       a full segment based on the current ramp conditions. If the segment time is incomplete
@@ -866,13 +957,13 @@ void st_prep_buffer()
       the end of planner block (typical) or mid-block at the end of a forced deceleration,
       such as from a feed hold.
     */
-    float dt_max = DT_SEGMENT; // Maximum segment time
-    float dt = 0.0; // Initialize segment time
-    float time_var = dt_max; // Time worker variable
-    float mm_var; // mm-Distance worker variable
-    float speed_var; // Speed worker variable
-    float mm_remaining = pl_block->millimeters; // New segment distance from end of block.
-    float minimum_mm = mm_remaining-prep.req_mm_increment; // Guarantee at least one step.
+    float dt_max = DT_SEGMENT; // Maximum segment time 最大的段时间
+    float dt = 0.0; // Initialize segment time 初始化段时间
+    float time_var = dt_max; // Time worker variable 时间工人变量
+    float mm_var; // mm-Distance worker variable 毫米距离工人变量
+    float speed_var; // Speed worker variable 速度工人变量
+    float mm_remaining = pl_block->millimeters; // New segment distance from end of block. 从块结束的新段距离
+    float minimum_mm = mm_remaining-prep.req_mm_increment; // Guarantee at least one step. 保证至少一步
     if (minimum_mm < 0.0) { minimum_mm = 0.0; }
 
     do {

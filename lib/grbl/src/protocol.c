@@ -188,7 +188,7 @@ void protocol_main_loop()
     }
 
     // 如果在串口读缓冲区没有更多字符需要处理或执行，这会通知g代码流填充到规划器缓冲区或已完成。
-    // 在其他案例中，自动循环开始，如果设置了，任意队列化的运动。
+    // 在其他情况下，自动循环开始，如果设置了，任意队列化的运动。
     // If there are no more characters in the serial read buffer to be processed and executed,
     // this indicates that g-code streaming has either filled the planner buffer or has
     // completed. In either case, auto-cycle start, if enabled, any queued moves.
@@ -391,9 +391,12 @@ void protocol_exec_rt_system()
     }
 
     // Execute a cycle start by starting the stepper interrupt to begin executing the blocks in queue.
+    // 执行一个循环开始步进电机中断用来执行队列中的块
     if (rt_exec & EXEC_CYCLE_START) {
       // Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
+      // 如果同时被保持命令：进给保持，运动取消和安全门
       // Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
+      // 保证自动循环开始不会在没有用户输入的情况下恢复保持
       if (!(rt_exec & (EXEC_FEED_HOLD | EXEC_MOTION_CANCEL | EXEC_SAFETY_DOOR))) {
         // Resume door state when parking motion has retracted and door has been closed.
         if ((sys.state == STATE_SAFETY_DOOR) && !(sys.suspend & SUSPEND_SAFETY_DOOR_AJAR)) {

@@ -160,18 +160,19 @@ void delay_us(uint32_t us)
 // Simple hypotenuse computation function.
 float hypot_f(float x, float y) { return(sqrt(x*x + y*y)); }
 
-
 float convert_delta_vector_to_unit_vector(float *vector)
 {
   uint8_t idx;
   float magnitude = 0.0;
+// 三个轴是正交的，知道了每个轴移动的距离，那么线段在空间里移动的真实距离是s*s=x*x+y*y+z*z，这个值在后面也会用到
   for (idx=0; idx<N_AXIS; idx++) {
     if (vector[idx] != 0.0) {
       magnitude += vector[idx]*vector[idx];
     }
   }
-  magnitude = sqrt(magnitude);
+  magnitude = sqrt(magnitude); // 开平方求出线段空间里移动的距离
   float inv_magnitude = 1.0/magnitude;
+  //这里是为计算两条线段的夹角做准备工作，为了便于理解，这里假设当前线段的坐标是向量c=(x2,y2,z2)，上一条线段的坐标向量d=(x1,y1,z1) ,它们的空间向量长度分别是s2和s1，那么有坐标正交可得，s2*s2=x2*x2+y2*y2+z2*z2，s1*s1=x1*x1+y1*y1+z1*z1，inverse_millimeters表示1/s，uint_vec[0/1/2]分别表示x/y/z，经过运算后uint_vec[0/1/2]表示的是x/s,y/s或者z/s，那么inverse_unit_vec_value 表示s/x，s/y或者s/z的绝对值
   for (idx=0; idx<N_AXIS; idx++) { vector[idx] *= inv_magnitude; }
   return(magnitude);
 }

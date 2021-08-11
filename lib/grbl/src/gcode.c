@@ -21,6 +21,8 @@
 
 #include "grbl.h"
 
+// 注意： G代码规范里行数被定义为最多99999。这看起来有些武断，并且一些GUI可能需要更多。因此增加它
+// 到基于一个安全的最大值当转换一个浮点值(7.2位精度)到一个证书值得时候。
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
@@ -32,6 +34,7 @@
 #define AXIS_COMMAND_MOTION_MODE 2
 #define AXIS_COMMAND_TOOL_LENGTH_OFFSET 3 // *Undefined but required
 
+// 声明外部结构体
 // Declare gc extern struct
 parser_state_t gc_state;
 parser_block_t gc_block;
@@ -42,14 +45,14 @@ parser_block_t gc_block;
 void gc_init()
 {
   memset(&gc_state, 0, sizeof(parser_state_t));
-
+  // 加载默认得G54坐标系统
   // Load default G54 coordinate system.
   if (!(settings_read_coord_data(gc_state.modal.coord_select,gc_state.coord_system))) {
     report_status_message(STATUS_SETTING_READ_FAIL);
   }
 }
 
-
+// 设置G代码解析器位置，用毫米表示。输入步数。系统终止和硬件限位触发时调用。
 // Sets g-code parser position in mm. Input in steps. Called by the system abort and hard
 // limit pull-off routines.
 void gc_sync_position()
@@ -57,7 +60,9 @@ void gc_sync_position()
   system_convert_array_steps_to_mpos(gc_state.position,sys_position);
 }
 
-
+// 执行一行0结尾的G代码。G代码行假设仅包含大写字母和无符号浮点值（没有空格）。注释和块删除字符已经
+// 在前面流程被移除了。在这个函数中，所有单位和位置都被转换并且分别导出到Grbl的内部函数使用mm或mm/min
+// 和绝对机器坐标。
 // Executes one line of 0-terminated G-Code. The line is assumed to contain only uppercase
 // characters and signed floating point values (no whitespace). Comments and block delete
 // characters have been removed. In this function, all units and positions are converted and
@@ -65,6 +70,10 @@ void gc_sync_position()
 // coordinates, respectively.
 uint8_t gc_execute_line(char *line)
 {
+
+  // 第一步： 初始化解析器块结构体并且拷贝当前G代码模式。解析器更新这些模式和命令作为块代码行并且仅
+  // 当错误检查成功之后被执行。解析器块结构体也包含一个块值结构体，词跟踪便令，还有非模态命令跟踪给
+  // 新块。这个街头他包含执行块的所有必要信息。
   /* -------------------------------------------------------------------------------------
      STEP 1: Initialize parser block struct and copy current g-code state modes. The parser
      updates these modes and commands as the block line is parser and will only be used and
@@ -72,24 +81,32 @@ uint8_t gc_execute_line(char *line)
      values struct, word tracking variables, and a non-modal commands tracker for the new
      block. This struct contains all of the necessary information to execute the block. */
 
+  // 初始化解析器块结构体
+  // 拷贝当前模式
   memset(&gc_block, 0, sizeof(parser_block_t)); // Initialize the parser block struct.
   memcpy(&gc_block.modal,&gc_state.modal,sizeof(gc_modal_t)); // Copy current modes
 
-  uint8_t axis_command = AXIS_COMMAND_NONE;
+  uint8_t axis_command = AXIS_COMMAND_NONE; // 初始化轴命令为初始状态
   uint8_t axis_0, axis_1, axis_linear;
+  // 跟踪G10 P坐标选择用于执行
   uint8_t coord_select = 0; // Tracks G10 P coordinate selection for execution
 
+  // 初始化位标记跟踪变量给轴指数兼容的操作
   // Initialize bitflag tracking variables for axis indices compatible operations.
-  uint8_t axis_words = 0; // XYZ tracking
-  uint8_t ijk_words = 0; // IJK tracking
+  uint8_t axis_words = 0; // XYZ tracking XYZ跟踪
+  uint8_t ijk_words = 0; // IJK tracking IJK跟踪
 
+  // 初始化命令和值词以及解析器标记变量
   // Initialize command and value words and parser flags variables.
+  // 跟踪G和M命令词。也用于模态组
   uint16_t command_words = 0; // Tracks G and M command words. Also used for modal group violations.
-  uint16_t value_words = 0; // Tracks value words.
+  uint16_t value_words = 0; // Tracks value words. 跟踪值词
   uint8_t gc_parser_flags = GC_PARSER_NONE;
 
+  // 判断代码行时手动模式还是常规G代码。注意当传到这个函数时`$J=`已经被解析了
   // Determine if the line is a jogging motion or a normal g-code block.
   if (line[0] == '$') { // NOTE: `$J=` already parsed when passed to this function.
+    // 设置G1和G4强制模式已保证正确的错误检查
     // Set G1 and G94 enforced modes to ensure accurate error checks.
     gc_parser_flags |= GC_PARSER_JOG_MOTION;
     gc_block.modal.motion = MOTION_MODE_LINEAR;
@@ -99,29 +116,39 @@ uint8_t gc_execute_line(char *line)
     #endif
   }
 
+  // 第二部： 导入所有G代码词到块代码行。一个G代码词时一个字母紧接着一个数字。它可以时G或M命令或
+  // 赋值一个命令值。同样地，执行初始化错误检查给模态组命令，为了重复词和负值给F，N，P，T和S词。
   /* -------------------------------------------------------------------------------------
      STEP 2: Import all g-code words in the block line. A g-code word is a letter followed by
      a number, which can either be a 'G'/'M' command or sets/assigns a command value. Also,
      perform initial error-checks for command word modal group violations, for any repeated
      words, and for negative values set for the value words F, N, P, T, and S. */
 
-  uint8_t word_bit; // Bit-value for assigning tracking variables
+  uint8_t word_bit; // Bit-value for assigning tracking variables赋值给跟踪变量的位值
   uint8_t char_counter;
   char letter;
   float value;
   uint8_t int_value = 0;
   uint16_t mantissa = 0;
+  // 如果时`$j=`开头，则从地3个字母开始才是真正解析的内容
   if (gc_parser_flags & GC_PARSER_JOG_MOTION) { char_counter = 3; } // Start parsing after `$J=`
   else { char_counter = 0; }
 
+  // 循环直到代码行中没有更多G代码词
   while (line[char_counter] != 0) { // Loop until no more g-code words in line.
 
+    // 导入下一个G代码词，期望一个字母接一个值。其他情况报错。
     // Import the next g-code word, expecting a letter followed by a value. Otherwise, error out.
     letter = line[char_counter];
     if((letter < 'A') || (letter > 'Z')) { FAIL(STATUS_EXPECTED_COMMAND_LETTER); } // [Expected word letter]
     char_counter++;
+    // 读取一个浮点值
     if (!read_float(line, &char_counter, &value)) { FAIL(STATUS_BAD_NUMBER_FORMAT); } // [Expected word value]
 
+    // 转换一个值到更小的8位有效值和为数值用于解析这个词。
+    // 注意尾数被乘以100得到非整形命令值。这个比NIST的G代码要求的x10更精确，但是对于值词要求的0.0001
+    // 还不够精确。这种妥协能涵盖大部分非整形误差。为了遵循标准，我们应该简单地改动尾数位int16，但这
+    // 会增加编译后占用的flash空间，以后可能会更新。
     // Convert values to smaller uint8 significand and mantissa values for parsing this word.
     // NOTE: Mantissa is multiplied by 100 to catch non-integer command values. This is more
     // accurate than the NIST gcode requirement of x10 when used for commands, but not quite
@@ -130,7 +157,9 @@ uint8_t gc_execute_line(char *line)
     // we would simply need to change the mantissa to int16, but this add compiled flash space.
     // Maybe update this later.
     int_value = trunc(value);
+    // 计算尾数给GXX.X命令，例如G38.2
     mantissa =  round(100*(value - int_value)); // Compute mantissa for Gxx.x commands.
+    // 注意：取整必须用来减少小数点误差
     // NOTE: Rounding must be used to catch small floating point errors.
 
     // Check if the g-code word is supported or errors due to modal group violations or has

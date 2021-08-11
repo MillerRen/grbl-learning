@@ -11,7 +11,8 @@ void protocol_main_loop()
 
         // 从串口读取代码行
         while ((c = serial_read()) != SERIAL_NO_DATA)
-        {            
+        {   
+            // serial_write(c);         
             if ((c == '\r') || (c == '\n'))
             {
                 line[char_counter] = 0;
@@ -19,11 +20,13 @@ void protocol_main_loop()
                 {
                     // 如果是$开头的命令，执行系统命令
                     // system_execute_line(line);
+                    printString(line);
                 }
                 else
                 {
                     // 如果是G代码，执行Gdaim命令
                     // gc_execute_line();
+                    // printString(line);
                 }
                 char_counter = 0;
             }
@@ -33,4 +36,6 @@ void protocol_main_loop()
             }
         }
     }
+
+    return;
 }

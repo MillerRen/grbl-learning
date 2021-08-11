@@ -21,7 +21,10 @@
 
 #include "grbl.h"
 
-
+// 使用绝对毫米坐标执行线性运动。进给率用mm/s给出除非invert_feed_rate设置为true。进给率的意思时运动会在
+// 1分钟每进给率时间完成。
+// 注意：这是给grbl的规划器的一个重要的通道。所有的运动，包括弧线段，在传递给规划器前必须传递到这个程序。
+// 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.
@@ -33,14 +36,19 @@ void mc_line(float *target, plan_line_data_t *pl_data)
 {
   // If enabled, check for soft limit violations. Placed here all line motions are picked up
   // from everywhere in Grbl.
+  // 如果限位使能，则检查软限位是否超出。在Grbl中从任何位置获得的所有线段运动都被放到这里。
   if (bit_istrue(settings.flags,BITFLAG_SOFT_LIMIT_ENABLE)) {
+    // 注意：阻止手动状态。手动控制是一个特殊情况，软件限位会被独立地处理。
     // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
     if (sys.state != STATE_JOG) { limits_soft_check(target); }
   }
 
+  // 如果处于g代码检查模式，则被规划器块阻止运动。软限位仍然工作。
   // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
   if (sys.state == STATE_CHECK_MODE) { return; }
 
+  // 注意：反冲补偿可能会安装在这。它需要方向信息去追踪，当当前运动线段之前插入一条反冲运动线段时。并且它需要
+  // 自己的
   // NOTE: Backlash compensation may be installed here. It will need direction info to track when
   // to insert a backlash line motion(s) before the intended line motion and will require its own
   // plan_check_full_buffer() and check for system abort loop. Also for position reporting
@@ -55,6 +63,8 @@ void mc_line(float *target, plan_line_data_t *pl_data)
   // doesn't update the machine position values. Since the position values used by the g-code
   // parser and planner are separate from the system machine positions, this is doable.
 
+  // 如果buffer满了，很好，那说明我们在机器运行下一步前准备好了。
+  // 剩下的就是循环直到填满buffer
   // If the buffer is full: good! That means we are well ahead of the robot.
   // Remain in this loop until there is room in the buffer.
   do {
@@ -64,6 +74,7 @@ void mc_line(float *target, plan_line_data_t *pl_data)
     else { break; }
   } while (1);
 
+  // 规划和队列化运动到规划器缓冲区里
   // Plan and queue motion into planner buffer
   if (plan_buffer_line(target, pl_data) == PLAN_EMPTY_BLOCK) {
     if (bit_istrue(settings.flags,BITFLAG_LASER_MODE)) {
@@ -365,6 +376,7 @@ uint8_t mc_probe_cycle(float *target, plan_line_data_t *pl_data, uint8_t parser_
 // realtime abort command and hard limits. So, keep to a minimum.
 void mc_reset()
 {
+  // 只有这个函数可以设置系统重置，帮助阻止多次终止调用
   // Only this function can set the system reset. Helps prevent multiple kill calls.
   if (bit_isfalse(sys_rt_exec_state, EXEC_RESET)) {
     system_set_exec_state_flag(EXEC_RESET);
