@@ -10,7 +10,7 @@ module.exports = {
         sidebar: [
             ['/', '首页'],
             ['/preface', '前言'],
-            ['/CNC/', 'CNC基础'],
+            ['/guide/', '准备工作'],
             ['/analysis/', 'Grbl源码解析'],
             ['/porting/', 'Grbl移植'],
             ['/extensions/', 'Grbl扩展'],
