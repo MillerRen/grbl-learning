@@ -8,7 +8,7 @@ module.exports = {
             { text: 'Github', link: 'https://github.com/MillerRen/grbl-learning' },
         ],
         sidebar: [
-            ['/preface', '序章']
+            ['/preface', '前言']
         ]
     }
 }
