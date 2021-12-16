@@ -8,7 +8,12 @@ module.exports = {
             { text: 'Github', link: 'https://github.com/MillerRen/grbl-learning' },
         ],
         sidebar: [
-            ['/preface', '前言']
+            ['/', '首页'],
+            ['/preface', '前言'],
+            ['/CNC/', 'CNC基础'],
+            ['/analysis/', 'Grbl源码解析'],
+            ['/porting/', 'Grbl移植'],
+            ['/extensions/', 'Grbl扩展'],
         ]
     }
 }
