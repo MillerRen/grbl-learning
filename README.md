@@ -11,11 +11,11 @@ grbl源码精读与解析，代码行级中文注释，包含详细例程
 
 ## 目录
 1. [前言](./docs/preface.md)
-1. CNC基础
+1. [CNC基础](./docs/CNC/)
     1. CNC简介
     1. Grbl简介
 
-1. grbl源码解析
+1. [grbl源码解析](./docs/analysis/)
     1. Grbl简介
     1. 架构
     1. 入口
@@ -33,10 +33,10 @@ grbl源码精读与解析，代码行级中文注释，包含详细例程
     1. 对刀
     1. 参数设置
 
-1. 移植
+1. [Grbl移植](./docs/porting/)
     1. 硬件软件分层
     1. 硬件对应
 
-1. 扩展
+1. [Grbl扩展](./docs/extensions/)
     1. gcode扩展
     1. 功能扩展
