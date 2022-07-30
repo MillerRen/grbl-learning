@@ -4,13 +4,13 @@ module.exports = {
     themeConfig: {
         nav: [
             { text: '首页', link: '/' },
-            { text: '指南', link: '/guide/' },
+            // { text: '指南', link: '/guide/' },
             { text: 'Github', link: 'https://github.com/MillerRen/grbl-learning' },
         ],
         sidebar: [
             ['/', '首页'],
             ['/preface', '前言'],
-            ['/guide/', '准备工作'],
+            ['/prepare', '准备工作'],
             ['/analysis/', 'Grbl源码解析'],
             ['/porting/', 'Grbl移植'],
             ['/extensions/', 'Grbl扩展'],
