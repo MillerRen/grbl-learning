@@ -11,10 +11,10 @@ grbl源码精读与解析，代码行级中文注释，包含详细例程
 
 ## 目录
 1. [前言](./docs/preface.md)
-1. 准备工作
-    1. [CNC基础](./docs/CNC.md)
-    1. [Grbl简介](./docs/prepare/grbl.md)
-    1. [软件硬件准备](./docs/prepare/requirements.md)
+1. [准备工作](./docs/prepare.md)
+    1. [CNC基础](./docs/prepare.md)
+    1. [Grbl简介](./docs/prepare.md)
+    1. [软件硬件准备](./docs/prepare.md)
 
 1. [grbl源码解析](./docs/analysis/)
     1. 开始
