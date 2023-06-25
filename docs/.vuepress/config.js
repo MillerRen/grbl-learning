@@ -132,7 +132,6 @@ module.exports = {
                     }
                 ]
             },
-            // ['/extensions/', 'Grbl扩展'],
             {
                 title: 'Grbl扩展',
                 path: '/extensions/',
@@ -147,7 +146,7 @@ module.exports = {
                     }
                 ]
             },
-            ['/appendix/', '附录'],
+            ['/appendix/', '附录']
         ]
     }
 }
