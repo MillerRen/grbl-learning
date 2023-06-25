@@ -102,7 +102,6 @@ module.exports = {
                   }
                 ]
               },
-            // ['/porting/', 'Grbl移植'],
             {
                 title: 'Grbl移植',
                 path: '/porting/',
@@ -133,7 +132,21 @@ module.exports = {
                     }
                 ]
             },
-            ['/extensions/', 'Grbl扩展'],
+            // ['/extensions/', 'Grbl扩展'],
+            {
+                title: 'Grbl扩展',
+                path: '/extensions/',
+                children: [
+                    {
+                        title: '支持舵机',
+                        path: '/extensions/servo.md'
+                    },
+                    {
+                        title: '支持换刀',
+                        path: '/extensions/toolchange.md'
+                    }
+                ]
+            },
             ['/appendix/', '附录'],
         ]
     }
