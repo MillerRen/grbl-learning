@@ -16,7 +16,6 @@ module.exports = {
             ['/', '首页'],
             ['/preface', '前言'],
             ['/prepare', '准备工作'],
-            // ['/analysis/', 'Grbl源码解析'],
             {
                 title: 'Grbl源码解析',   
                 path: '/analysis/',   
@@ -103,8 +102,39 @@ module.exports = {
                   }
                 ]
               },
-            ['/porting/', 'Grbl移植'],
+            // ['/porting/', 'Grbl移植'],
+            {
+                title: 'Grbl移植',
+                path: '/porting/',
+                children: [
+                    {
+                        title: 'MCU选型',
+                        path: '/porting/lectotype.md'
+                    },
+                    {
+                        title: 'GPIO移植',
+                        path: '/porting/GPIO.md'
+                    },
+                    {
+                        title: '串口移植',
+                        path: '/porting/serial.md'
+                    },
+                    {
+                        title: '定时器移植',
+                        path: '/porting/timer.md'
+                    },
+                    {
+                        title: 'EEPROM移植',
+                        path: '/porting/EEPROM.md'
+                    },
+                    {
+                        title: '原子化操作',
+                        path: '/porting/ATOMIC.md'
+                    }
+                ]
+            },
             ['/extensions/', 'Grbl扩展'],
+            ['/appendix/', '附录'],
         ]
     }
 }
