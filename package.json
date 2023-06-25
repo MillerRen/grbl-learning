@@ -9,8 +9,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
+    "docs:dev": "SET NODE_OPTIONS=--openssl-legacy-provider && vuepress dev docs",
+    "docs:build": "SET NODE_OPTIONS=--openssl-legacy-provider && vuepress build docs",
     "deploy": "gh-pages -d docs/.vuepress/dist"
   },
   "repository": {
@@ -30,6 +30,6 @@
   "homepage": "https://github.com/MillerRen/grbl-learning#readme",
   "devDependencies": {
     "gh-pages": "^3.1.0",
-    "vuepress": "^1.8.2"
+    "vuepress": "^1.9.9"
   }
 }
