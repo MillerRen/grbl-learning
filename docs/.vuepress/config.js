@@ -8,8 +8,9 @@ module.exports = {
     ],
     themeConfig: {
         nav: [
-            { text: '首页', link: '/' },
-            // { text: '指南', link: '/guide/' },
+            // { text: '首页', link: '/' },
+            { text: '打赏', link: '/donate/' },
+            { text: 'grbl中文注解', link: 'https://github.com/MillerRen/grbl' },
             { text: 'Github', link: 'https://github.com/MillerRen/grbl-learning' },
         ],
         sidebar: [
