@@ -8,7 +8,7 @@
     <link rel="icon" href="/logo.png">
     <meta name="description" content="Grbl源码精度与解析，代码行级中文注释并提供丰富详尽的案例展示。">
     
-    <link rel="preload" href="/assets/css/0.styles.e8e4f3a3.css" as="style"><link rel="preload" href="/assets/js/app.38bbfc3d.js" as="script"><link rel="preload" href="/assets/js/2.2179b996.js" as="script"><link rel="preload" href="/assets/js/19.5368bf5b.js" as="script"><link rel="prefetch" href="/assets/js/10.b7ab63d6.js"><link rel="prefetch" href="/assets/js/11.94485d27.js"><link rel="prefetch" href="/assets/js/12.98880adf.js"><link rel="prefetch" href="/assets/js/13.8de29ef2.js"><link rel="prefetch" href="/assets/js/14.de9f355a.js"><link rel="prefetch" href="/assets/js/15.10c69e8b.js"><link rel="prefetch" href="/assets/js/16.42dce14f.js"><link rel="prefetch" href="/assets/js/17.1fd6fda0.js"><link rel="prefetch" href="/assets/js/18.8bbbff7e.js"><link rel="prefetch" href="/assets/js/20.7f03b43b.js"><link rel="prefetch" href="/assets/js/21.876e5832.js"><link rel="prefetch" href="/assets/js/22.222069d8.js"><link rel="prefetch" href="/assets/js/23.a1a3948d.js"><link rel="prefetch" href="/assets/js/24.fec94cbc.js"><link rel="prefetch" href="/assets/js/25.d60ff0f6.js"><link rel="prefetch" href="/assets/js/26.e847c9db.js"><link rel="prefetch" href="/assets/js/27.4cfe911c.js"><link rel="prefetch" href="/assets/js/28.97a9a05d.js"><link rel="prefetch" href="/assets/js/29.4cef9913.js"><link rel="prefetch" href="/assets/js/3.979c3c9d.js"><link rel="prefetch" href="/assets/js/30.497bc7c0.js"><link rel="prefetch" href="/assets/js/31.f0b9325c.js"><link rel="prefetch" href="/assets/js/32.166a6dc2.js"><link rel="prefetch" href="/assets/js/33.9a533257.js"><link rel="prefetch" href="/assets/js/34.968c3890.js"><link rel="prefetch" href="/assets/js/35.5ebef0db.js"><link rel="prefetch" href="/assets/js/36.9793640a.js"><link rel="prefetch" href="/assets/js/37.cba1a6c9.js"><link rel="prefetch" href="/assets/js/38.5f1d217f.js"><link rel="prefetch" href="/assets/js/39.56d06a43.js"><link rel="prefetch" href="/assets/js/4.684c220d.js"><link rel="prefetch" href="/assets/js/40.5b14f599.js"><link rel="prefetch" href="/assets/js/41.12112caa.js"><link rel="prefetch" href="/assets/js/5.44e5e94b.js"><link rel="prefetch" href="/assets/js/6.c60b674b.js"><link rel="prefetch" href="/assets/js/7.cc83311f.js"><link rel="prefetch" href="/assets/js/8.00e227fb.js"><link rel="prefetch" href="/assets/js/9.79ed1b22.js">
+    <link rel="preload" href="/assets/css/0.styles.e8e4f3a3.css" as="style"><link rel="preload" href="/assets/js/app.9025fca6.js" as="script"><link rel="preload" href="/assets/js/2.2179b996.js" as="script"><link rel="preload" href="/assets/js/19.7715a2d5.js" as="script"><link rel="prefetch" href="/assets/js/10.506d157f.js"><link rel="prefetch" href="/assets/js/11.94485d27.js"><link rel="prefetch" href="/assets/js/12.7b1fc706.js"><link rel="prefetch" href="/assets/js/13.c6140b6d.js"><link rel="prefetch" href="/assets/js/14.d07f98cd.js"><link rel="prefetch" href="/assets/js/15.5a807fbe.js"><link rel="prefetch" href="/assets/js/16.e78a27f6.js"><link rel="prefetch" href="/assets/js/17.ee4b6d1f.js"><link rel="prefetch" href="/assets/js/18.f8873908.js"><link rel="prefetch" href="/assets/js/20.c4557d58.js"><link rel="prefetch" href="/assets/js/21.026d9e3b.js"><link rel="prefetch" href="/assets/js/22.3cfcf25e.js"><link rel="prefetch" href="/assets/js/23.4bd6be5d.js"><link rel="prefetch" href="/assets/js/24.b53af0cd.js"><link rel="prefetch" href="/assets/js/25.13b5e8ac.js"><link rel="prefetch" href="/assets/js/26.9fc3e80f.js"><link rel="prefetch" href="/assets/js/27.43445fc6.js"><link rel="prefetch" href="/assets/js/28.e7443675.js"><link rel="prefetch" href="/assets/js/29.61bde2d7.js"><link rel="prefetch" href="/assets/js/3.281ea079.js"><link rel="prefetch" href="/assets/js/30.2e24a202.js"><link rel="prefetch" href="/assets/js/31.04abe46c.js"><link rel="prefetch" href="/assets/js/32.48fdc75e.js"><link rel="prefetch" href="/assets/js/33.4925b93a.js"><link rel="prefetch" href="/assets/js/34.cad5a87d.js"><link rel="prefetch" href="/assets/js/35.64d99878.js"><link rel="prefetch" href="/assets/js/36.9793640a.js"><link rel="prefetch" href="/assets/js/37.d64dba23.js"><link rel="prefetch" href="/assets/js/38.288a21e6.js"><link rel="prefetch" href="/assets/js/39.56d06a43.js"><link rel="prefetch" href="/assets/js/4.684c220d.js"><link rel="prefetch" href="/assets/js/40.31f94a78.js"><link rel="prefetch" href="/assets/js/41.efc6288a.js"><link rel="prefetch" href="/assets/js/5.44e5e94b.js"><link rel="prefetch" href="/assets/js/6.c60b674b.js"><link rel="prefetch" href="/assets/js/7.cc83311f.js"><link rel="prefetch" href="/assets/js/8.ba3f58b3.js"><link rel="prefetch" href="/assets/js/9.79ed1b22.js">
     <link rel="stylesheet" href="/assets/css/0.styles.e8e4f3a3.css">
   </head>
   <body>
@@ -24,7 +24,190 @@
   grbl中文注解
   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div><div class="nav-item"><a href="https://github.com/MillerRen/grbl-learning" target="_blank" rel="noopener noreferrer" class="nav-link external">
   Github
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div> <!----></nav>  <ul class="sidebar-links"><li><a href="/" aria-current="page" class="sidebar-link">首页</a></li><li><a href="/preface.html" class="sidebar-link">前言</a></li><li><a href="/prepare.html" class="sidebar-link">准备工作</a></li><li><section class="sidebar-group collapsable depth-0"><a href="/analysis/" class="sidebar-heading clickable router-link-active open"><span>Grbl源码解析</span> <span class="arrow down"></span></a> <ul class="sidebar-links sidebar-group-items"><li><a href="/analysis/" aria-current="page" class="sidebar-link">开始</a></li><li><a href="/analysis/architecture.html" class="sidebar-link">架构</a></li><li><a href="/analysis/main.html" aria-current="page" class="active sidebar-link">主入口</a></li><li><a href="/analysis/serial.html" class="sidebar-link">串口</a></li><li><a href="/analysis/protocol.html" class="sidebar-link">协议</a></li><li><a href="/analysis/system.html" class="sidebar-link">状态机</a></li><li><a href="/analysis/gcode.html" class="sidebar-link">G代码解析</a></li><li><a href="/analysis/motion.html" class="sidebar-link">运动控制</a></li><li><a href="/analysis/planner.html" class="sidebar-link">运动规划</a></li><li><a href="/analysis/acceleration.html" class="sidebar-link">加速度算法</a></li><li><a href="/analysis/bresenham.html" class="sidebar-link">bresenham插值算法</a></li><li><a href="/analysis/stepper.html" class="sidebar-link">运动执行-步进电机</a></li><li><a href="/analysis/spindle.html" class="sidebar-link">主轴</a></li><li><a href="/analysis/coolant.html" class="sidebar-link">冷却</a></li><li><a href="/analysis/endstop.html" class="sidebar-link">限位开关</a></li><li><a href="/analysis/homing.html" class="sidebar-link">归位</a></li><li><a href="/analysis/probe.html" class="sidebar-link">对刀</a></li><li><a href="/analysis/emergency.html" class="sidebar-link">安全-紧急事件</a></li><li><a href="/analysis/settings.html" class="sidebar-link">参数设置</a></li><li><a href="/analysis/interface.html" class="sidebar-link">上位机接口</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><a href="/porting/" class="sidebar-heading clickable"><span>Grbl移植</span> <span class="arrow right"></span></a> <!----></section></li><li><section class="sidebar-group collapsable depth-0"><a href="/extensions/" class="sidebar-heading clickable"><span>Grbl扩展</span> <span class="arrow right"></span></a> <!----></section></li><li><a href="/appendix/" class="sidebar-link">附录</a></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="主入口"><a href="#主入口" class="header-anchor">#</a> 主入口</h1></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div> <!----></nav>  <ul class="sidebar-links"><li><a href="/" aria-current="page" class="sidebar-link">首页</a></li><li><a href="/preface.html" class="sidebar-link">前言</a></li><li><a href="/prepare.html" class="sidebar-link">准备工作</a></li><li><section class="sidebar-group collapsable depth-0"><a href="/analysis/" class="sidebar-heading clickable router-link-active open"><span>Grbl源码解析</span> <span class="arrow down"></span></a> <ul class="sidebar-links sidebar-group-items"><li><a href="/analysis/" aria-current="page" class="sidebar-link">开始</a></li><li><a href="/analysis/architecture.html" class="sidebar-link">架构</a></li><li><a href="/analysis/main.html" aria-current="page" class="active sidebar-link">主入口</a></li><li><a href="/analysis/serial.html" class="sidebar-link">串口</a></li><li><a href="/analysis/protocol.html" class="sidebar-link">协议</a></li><li><a href="/analysis/system.html" class="sidebar-link">状态机</a></li><li><a href="/analysis/gcode.html" class="sidebar-link">G代码解析</a></li><li><a href="/analysis/motion.html" class="sidebar-link">运动控制</a></li><li><a href="/analysis/planner.html" class="sidebar-link">运动规划</a></li><li><a href="/analysis/acceleration.html" class="sidebar-link">加速度算法</a></li><li><a href="/analysis/bresenham.html" class="sidebar-link">bresenham插值算法</a></li><li><a href="/analysis/stepper.html" class="sidebar-link">运动执行-步进电机</a></li><li><a href="/analysis/spindle.html" class="sidebar-link">主轴</a></li><li><a href="/analysis/coolant.html" class="sidebar-link">冷却</a></li><li><a href="/analysis/endstop.html" class="sidebar-link">限位开关</a></li><li><a href="/analysis/homing.html" class="sidebar-link">归位</a></li><li><a href="/analysis/probe.html" class="sidebar-link">对刀</a></li><li><a href="/analysis/emergency.html" class="sidebar-link">安全-紧急事件</a></li><li><a href="/analysis/settings.html" class="sidebar-link">参数设置</a></li><li><a href="/analysis/interface.html" class="sidebar-link">上位机接口</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><a href="/porting/" class="sidebar-heading clickable"><span>Grbl移植</span> <span class="arrow right"></span></a> <!----></section></li><li><section class="sidebar-group collapsable depth-0"><a href="/extensions/" class="sidebar-heading clickable"><span>Grbl扩展</span> <span class="arrow right"></span></a> <!----></section></li><li><a href="/appendix/" class="sidebar-link">附录</a></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="主入口"><a href="#主入口" class="header-anchor">#</a> 主入口</h1> <p>Grbl的主入口是grbl文件夹里面的<code>main.c</code>,入口函数是<code>main()</code>，而不是Arduino的 <code>setup()</code>和<code>loop()</code>，其实功能上差不多，就是先执行初始化，再加一个无限循环。我们先看下<code>main.c</code>的源代码和注释。</p> <div class="language-c extra-class"><pre class="language-c"><code><span class="token comment">/*
+  main.c - An embedded CNC Controller with rs274/ngc (g-code) support
+  Part of Grbl
+
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
+  Copyright (c) 2009-2011 Simen Svale Skogsrud
+
+  Grbl is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Grbl is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Grbl.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+*/</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&quot;grbl.h&quot;</span></span>
+
+
+<span class="token comment">// Declare system global variable structure</span>
+<span class="token class-name">system_t</span> sys<span class="token punctuation">;</span>
+<span class="token class-name">int32_t</span> sys_position<span class="token punctuation">[</span>N_AXIS<span class="token punctuation">]</span><span class="token punctuation">;</span>      <span class="token comment">// Real-time machine (aka home) position vector in steps.</span>
+<span class="token class-name">int32_t</span> sys_probe_position<span class="token punctuation">[</span>N_AXIS<span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token comment">// Last probe position in machine coordinates and steps.</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_probe_state<span class="token punctuation">;</span>   <span class="token comment">// Probing state value.  Used to coordinate the probing cycle with stepper ISR.</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_state<span class="token punctuation">;</span>   <span class="token comment">// Global realtime executor bitflag variable for state management. See EXEC bitmasks.</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_alarm<span class="token punctuation">;</span>   <span class="token comment">// Global realtime executor bitflag variable for setting various alarms.</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_motion_override<span class="token punctuation">;</span> <span class="token comment">// Global realtime executor bitflag variable for motion-based overrides.</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_accessory_override<span class="token punctuation">;</span> <span class="token comment">// Global realtime executor bitflag variable for spindle/coolant overrides.</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">DEBUG</span></span>
+  <span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_debug<span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  <span class="token comment">// Initialize system upon power-up.</span>
+  <span class="token function">serial_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// Setup serial baud rate and interrupts</span>
+  <span class="token function">settings_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Load Grbl settings from EEPROM</span>
+  <span class="token function">stepper_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Configure stepper pins and interrupt timers</span>
+  <span class="token function">system_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// Configure pinout pins and pin-change interrupt</span>
+
+  <span class="token function">memset</span><span class="token punctuation">(</span>sys_position<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>sys_position<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Clear machine position.</span>
+  <span class="token function">sei</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Enable interrupts</span>
+
+  <span class="token comment">// Initialize system state.</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">FORCE_INITIALIZATION_ALARM</span></span>
+    <span class="token comment">// Force Grbl into an ALARM state upon a power-cycle or hard reset.</span>
+    sys<span class="token punctuation">.</span>state <span class="token operator">=</span> STATE_ALARM<span class="token punctuation">;</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+    sys<span class="token punctuation">.</span>state <span class="token operator">=</span> STATE_IDLE<span class="token punctuation">;</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+  
+  <span class="token comment">// Check for power-up and set system alarm if homing is enabled to force homing cycle</span>
+  <span class="token comment">// by setting Grbl's alarm state. Alarm locks out all g-code commands, including the</span>
+  <span class="token comment">// startup scripts, but allows access to settings and internal commands. Only a homing</span>
+  <span class="token comment">// cycle '$H' or kill alarm locks '$X' will disable the alarm.</span>
+  <span class="token comment">// NOTE: The startup script will run after successful completion of the homing cycle, but</span>
+  <span class="token comment">// not after disabling the alarm locks. Prevents motion startup blocks from crashing into</span>
+  <span class="token comment">// things uncontrollably. Very bad.</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">HOMING_INIT_LOCK</span></span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">bit_istrue</span><span class="token punctuation">(</span>settings<span class="token punctuation">.</span>flags<span class="token punctuation">,</span>BITFLAG_HOMING_ENABLE<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> sys<span class="token punctuation">.</span>state <span class="token operator">=</span> STATE_ALARM<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+
+  <span class="token comment">// Grbl initialization loop upon power-up or a system abort. For the latter, all processes</span>
+  <span class="token comment">// will return to this loop to be cleanly re-initialized.</span>
+  <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+    <span class="token comment">// Reset system variables.</span>
+    <span class="token class-name">uint8_t</span> prior_state <span class="token operator">=</span> sys<span class="token punctuation">.</span>state<span class="token punctuation">;</span>
+    <span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>sys<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token class-name">system_t</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Clear system struct variable.</span>
+    sys<span class="token punctuation">.</span>state <span class="token operator">=</span> prior_state<span class="token punctuation">;</span>
+    sys<span class="token punctuation">.</span>f_override <span class="token operator">=</span> DEFAULT_FEED_OVERRIDE<span class="token punctuation">;</span>  <span class="token comment">// Set to 100%</span>
+    sys<span class="token punctuation">.</span>r_override <span class="token operator">=</span> DEFAULT_RAPID_OVERRIDE<span class="token punctuation">;</span> <span class="token comment">// Set to 100%</span>
+    sys<span class="token punctuation">.</span>spindle_speed_ovr <span class="token operator">=</span> DEFAULT_SPINDLE_SPEED_OVERRIDE<span class="token punctuation">;</span> <span class="token comment">// Set to 100%</span>
+		<span class="token function">memset</span><span class="token punctuation">(</span>sys_probe_position<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>sys_probe_position<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Clear probe position.</span>
+    sys_probe_state <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    sys_rt_exec_state <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    sys_rt_exec_alarm <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    sys_rt_exec_motion_override <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    sys_rt_exec_accessory_override <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Reset Grbl primary systems.</span>
+    <span class="token function">serial_reset_read_buffer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Clear serial read buffer</span>
+    <span class="token function">gc_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Set g-code parser to default state</span>
+    <span class="token function">spindle_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">coolant_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">limits_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">probe_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">plan_reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Clear block buffer and planner variables</span>
+    <span class="token function">st_reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Clear stepper subsystem variables.</span>
+
+    <span class="token comment">// Sync cleared gcode and planner positions to current system position.</span>
+    <span class="token function">plan_sync_position</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">gc_sync_position</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Print welcome message. Indicates an initialization has occured at power-up or with a reset.</span>
+    <span class="token function">report_init_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Start Grbl main loop. Processes program inputs and executes them.</span>
+    <span class="token function">protocol_main_loop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token punctuation">}</span>
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>   <span class="token comment">/* Never reached */</span>
+<span class="token punctuation">}</span>
+</code></pre></div><p>注释的开头说明grbl是一个支持NIST（国家标准及技术局） rs274/ngc规范（<a href="/docs/RS274NGC_3.pdf">见附件</a>）的嵌入式控制器，它在GNU GPL许可下发布。</p> <ul><li>grbl是模块化的，所有模块通过<code>#include &quot;grbl.h&quot;</code>文件头引入.<br>
+然后初始化了一些全局状态，通过状态机维护这些状态:</li></ul> <div class="language-c extra-class"><pre class="language-c"><code><span class="token comment">// 声明系统全局变量结构体</span>
+<span class="token class-name">system_t</span> sys<span class="token punctuation">;</span>
+<span class="token class-name">int32_t</span> sys_position<span class="token punctuation">[</span>N_AXIS<span class="token punctuation">]</span><span class="token punctuation">;</span>      <span class="token comment">// 用步数表示的实时机器（如归位）位置向量。</span>
+<span class="token class-name">int32_t</span> sys_probe_position<span class="token punctuation">[</span>N_AXIS<span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token comment">// 探针在机器坐标的最后位置和步数。</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_probe_state<span class="token punctuation">;</span>   <span class="token comment">// 对刀状态值。用于在步进中断中配合对刀周期。</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_state<span class="token punctuation">;</span>   <span class="token comment">// 用于状态管理的全局实时执行器比特位标志位。 请参阅执行比特位掩码。</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_alarm<span class="token punctuation">;</span>   <span class="token comment">// 用于设置一系列警告的全局实时执行器比特位标志位变量。</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_motion_override<span class="token punctuation">;</span> <span class="token comment">// 用于基于运动的覆盖的全局执行器位标志位变量。</span>
+<span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_accessory_override<span class="token punctuation">;</span> <span class="token comment">// 用于主轴/冷却覆盖的全局实时执行器比特位标志位变量。</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">DEBUG</span></span>
+  <span class="token keyword">volatile</span> <span class="token class-name">uint8_t</span> sys_rt_exec_debug<span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+</code></pre></div><ul><li>在main函数中对各个模块进行初始化，主要包括定义引脚，设置中断等,然后开启总中断：</li></ul> <div class="language-c extra-class"><pre class="language-c"><code><span class="token comment">// 开机后初始化系统</span>
+  <span class="token function">serial_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 设置串口波特率和中断。</span>
+  <span class="token function">settings_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 从EEPROM加载Grbl设置。</span>
+  <span class="token function">stepper_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 配置步进电机引脚和中断定时器。</span>
+  <span class="token function">system_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 配置引出引脚和引脚电平改变中断。</span>
+
+  <span class="token function">memset</span><span class="token punctuation">(</span>sys_position<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>sys_position<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 清空机器位置。</span>
+  <span class="token function">sei</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 开启总中断。</span>
+</code></pre></div><ul><li>如果设置了进行限位开关的检查，就进入限位警报状态，机器启动时就得进行<code>$H</code>归位，或者通过<code>$X</code>命令解除警报:</li></ul> <div class="language-c extra-class"><pre class="language-c"><code><span class="token comment">// 初始化系统状态</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">FORCE_INITIALIZATION_ALARM</span></span>
+    <span class="token comment">// 在系统上电或硬件重置时强制Grbl进入ALARM状态。</span>
+    sys<span class="token punctuation">.</span>state <span class="token operator">=</span> STATE_ALARM<span class="token punctuation">;</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+    sys<span class="token punctuation">.</span>state <span class="token operator">=</span> STATE_IDLE<span class="token punctuation">;</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+  <span class="token comment">// 通过设置Grbl的警报状态，如果归位被启用，则上电后检查系统警报以强制进入归位周期。</span>
+  <span class="token comment">// 警报锁定所有G代码命令，包括启动脚本，但是允许设置和内部命令。</span>
+  <span class="token comment">// 只允许归位周期'$H'命令或解除警报'$X'命令。</span>
+  <span class="token comment">// 注意：启动脚本将会在归位周期成功完成后执行，但是不会在解除警报后执行。</span>
+  <span class="token comment">// 阻止运动启动块从崩溃中进入不可控的事情。那是非常糟糕的。</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">HOMING_INIT_LOCK</span></span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">bit_istrue</span><span class="token punctuation">(</span>settings<span class="token punctuation">.</span>flags<span class="token punctuation">,</span>BITFLAG_HOMING_ENABLE<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> sys<span class="token punctuation">.</span>state <span class="token operator">=</span> STATE_ALARM<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+</code></pre></div><ul><li>然后进入循环，进行干净的初始化,然后进入grbl的主循环：</li></ul> <div class="language-c extra-class"><pre class="language-c"><code><span class="token comment">// Grbl 在上电或系统终止后初始化循环。稍后，所有过程将会返回到这个循环进行干净地重新初始化。</span>
+  <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+    <span class="token comment">// 重置系统变量。</span>
+    <span class="token class-name">uint8_t</span> prior_state <span class="token operator">=</span> sys<span class="token punctuation">.</span>state<span class="token punctuation">;</span>
+    <span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>sys<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token class-name">system_t</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 清空系统结构体变量。</span>
+    sys<span class="token punctuation">.</span>state <span class="token operator">=</span> prior_state<span class="token punctuation">;</span>
+    sys<span class="token punctuation">.</span>f_override <span class="token operator">=</span> DEFAULT_FEED_OVERRIDE<span class="token punctuation">;</span>  <span class="token comment">// 设置进给覆盖 100%</span>
+    sys<span class="token punctuation">.</span>r_override <span class="token operator">=</span> DEFAULT_RAPID_OVERRIDE<span class="token punctuation">;</span> <span class="token comment">// 设置速度覆盖为 100%</span>
+    sys<span class="token punctuation">.</span>spindle_speed_ovr <span class="token operator">=</span> DEFAULT_SPINDLE_SPEED_OVERRIDE<span class="token punctuation">;</span> <span class="token comment">// 设置主轴覆盖为 100%</span>
+		<span class="token function">memset</span><span class="token punctuation">(</span>sys_probe_position<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>sys_probe_position<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 清空探针位置。</span>
+    sys_probe_state <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// 初始化探针状态</span>
+    sys_rt_exec_state <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// 初始化实时执行状态</span>
+    sys_rt_exec_alarm <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// 初始化实时警报状态</span>
+    sys_rt_exec_motion_override <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// 初始化实时执行运动覆盖</span>
+    sys_rt_exec_accessory_override <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// 初始化实时主轴或冷却覆盖</span>
+
+    <span class="token comment">// 重置Grbl主系统。</span>
+    <span class="token function">serial_reset_read_buffer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 清空串口读缓冲区</span>
+    <span class="token function">gc_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 设置G代码解析器到默认状态。</span>
+    <span class="token function">spindle_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 初始化主轴子系统</span>
+    <span class="token function">coolant_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 初始化冷却子系统</span>
+    <span class="token function">limits_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 初始化限位子系统</span>
+    <span class="token function">probe_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 初始化对刀子系统</span>
+    <span class="token function">plan_reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 清空块缓冲区和规划器变量。</span>
+    <span class="token function">st_reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 清空步进子系统变量。</span>
+
+    <span class="token comment">// 同步清空了的G代码和规划器位置到当前系统位置。</span>
+    <span class="token function">plan_sync_position</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">gc_sync_position</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 打印欢迎信息。通知在上电或复位时发生了初始化。</span>
+    <span class="token function">report_init_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 开启Grbl主循环。处理程序输入并执行他们。</span>
+    <span class="token function">protocol_main_loop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token punctuation">}</span>
+</code></pre></div><p>grbl是一个典型的前后台型系统架构，前台是各种中断处理，后台是一个无限循环，然后通过状态机关联前后台，中断中不会执行复杂的任务，它只根据当前条件改变状态，后台通过状态执行相应的任务，比如G代码解析，运动前瞻规划，运动插值等。</p></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
       ←
       <a href="/analysis/architecture.html" class="prev">
         架构
@@ -33,6 +216,6 @@
       </a>
       →
     </span></p></div> </main></div><div class="global-ui"></div></div>
-    <script src="/assets/js/app.38bbfc3d.js" defer></script><script src="/assets/js/2.2179b996.js" defer></script><script src="/assets/js/19.5368bf5b.js" defer></script>
+    <script src="/assets/js/app.9025fca6.js" defer></script><script src="/assets/js/2.2179b996.js" defer></script><script src="/assets/js/19.7715a2d5.js" defer></script>
   </body>
 </html>
