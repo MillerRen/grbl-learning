@@ -31,16 +31,16 @@ module.exports = {
             path: '/analysis/architecture.md'
           },
           {
-            title: '主入口',
+            title: '入口',
             path: '/analysis/main.md'
+          },
+          {
+            title: '协议-主循环',
+            path: '/analysis/protocol.md'
           },
           {
             title: '串口',
             path: '/analysis/serial.md'
-          },
-          {
-            title: '协议',
-            path: '/analysis/protocol.md'
           },
           {
             title: '状态机',
