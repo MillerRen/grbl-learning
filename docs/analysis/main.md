@@ -1,4 +1,4 @@
-# 入口
+# 入口 `main.c`
 Grbl的主入口是grbl文件夹里面的`main.c`,入口函数是`main()`，而不是Arduino的 `setup()`和`loop()`，其实功能上差不多，就是先执行初始化，再加一个无限循环。我们先看下`main.c`的源代码和注释。
 ``` c
 /*
@@ -161,7 +161,7 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
   #endif
 ```
 
-- 然后进入循环，进行干净的初始化,然后进入grbl的主循环：
+- 然后进入循环，进行干净的初始化：
 ``` c
 // Grbl 在上电或系统终止后初始化循环。稍后，所有过程将会返回到这个循环进行干净地重新初始化。
   for(;;) {
@@ -203,3 +203,4 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
   }
 ```
 
+- 然后进入grbl的主循环`protocol_main_loop()`
