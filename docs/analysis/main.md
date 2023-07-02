@@ -203,4 +203,4 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
   }
 ```
 
-- 然后进入grbl的主循环`protocol_main_loop()`
+- 然后进入grbl的主循环`protocol_main_loop()`,开始协议解析和后台任务处理。
