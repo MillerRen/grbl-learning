@@ -1,6 +1,6 @@
 module.exports = {
-  title: 'Grbl 源码解析与移植',
-  description: 'Grbl源码精度与解析，代码行级中文注释并提供丰富详尽的案例展示。',
+  title: 'GRBL 源码解析与移植',
+  description: 'GRBL源码精度与解析，代码行级中文注释并提供丰富详尽的案例展示。',
   head: [
     [
       'link', { rel: 'icon', href: '/logo.png' }
@@ -11,7 +11,7 @@ module.exports = {
     nav: [
       // { text: '首页', link: '/' },
       { text: '打赏', link: '/donate/' },
-      { text: 'grbl中文注解', link: 'https://github.com/MillerRen/grbl' },
+      { text: 'GRBL中文注解', link: 'https://github.com/MillerRen/grbl' },
       { text: 'Github', link: 'https://github.com/MillerRen/grbl-learning' },
     ],
     sidebar: [
@@ -19,7 +19,33 @@ module.exports = {
       ['/preface', '前言'],
       ['/prepare', '准备工作'],
       {
-        title: 'Grbl源码解析',
+        title: '硬件基础',
+        path: '/hardware/',
+        children: [
+          {
+            title: 'Arduino硬件基础',
+            path: '/hardware/'
+          },
+          {
+            title: '输入输出',
+            path: '/hardware/gpio.md'
+          },
+          {
+            title: '串口',
+            path: '/hardware/serial.md'
+          },
+          {
+            title: '定时器',
+            path: '/hardware/titmer.md'
+          },
+          {
+            title: 'EEPROM',
+            path: '/hardware/eeprom.md'
+          }
+        ]
+      },
+      {
+        title: 'GRBL源码解析',
         path: '/analysis/',
         children: [
           {
@@ -105,7 +131,7 @@ module.exports = {
         ]
       },
       {
-        title: 'Grbl移植',
+        title: 'GRBL移植',
         path: '/porting/',
         children: [
           {
@@ -135,7 +161,7 @@ module.exports = {
         ]
       },
       {
-        title: 'Grbl扩展',
+        title: 'GRBL扩展',
         path: '/extensions/',
         children: [
           {
