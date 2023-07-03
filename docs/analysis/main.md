@@ -1,4 +1,6 @@
 # 入口 `main.c`
+
+## 源代码
 Grbl的主入口是grbl文件夹里面的`main.c`,入口函数是`main()`，而不是Arduino的 `setup()`和`loop()`，其实功能上差不多，就是先执行初始化，再加一个无限循环。我们先看下`main.c`的源代码和注释。
 ``` c
 /*
@@ -111,9 +113,9 @@ int main(void)
   return 0;   /* Never reached */
 }
 ```
-
+## 注释
 注释的开头说明grbl是一个支持NIST（国家标准及技术局） rs274/ngc规范（[见附件](/docs/RS274NGC_3.pdf)）的嵌入式控制器，它在GNU GPL许可下发布。   
-- grbl是模块化的，所有模块通过`#include "grbl.h"`文件头引入.   
+grbl是模块化的，所有模块通过`#include "grbl.h"`文件头引入.   
 然后初始化了一些全局状态，通过状态机维护这些状态:   
 ``` c
 // 声明系统全局变量结构体
@@ -130,7 +132,8 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
 #endif
 ```
 
-- 在main函数中对各个模块进行初始化，主要包括定义引脚，设置中断等,然后开启总中断：
+## 初始化
+在main函数中对各个模块进行初始化，主要包括定义引脚，设置中断等,然后开启总中断：
 ``` c
 // 开机后初始化系统
   serial_init();   // 设置串口波特率和中断。
@@ -142,7 +145,8 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
   sei(); // 开启总中断。
 ```
 
-- 如果设置了进行限位开关的检查，就进入限位警报状态，机器启动时就得进行`$H`归位，或者通过`$X`命令解除警报:
+## 状态检查
+如果设置了进行限位开关的检查，就进入限位警报状态，机器启动时就得进行`$H`归位，或者通过`$X`命令解除警报:
 ``` c
 // 初始化系统状态
   #ifdef FORCE_INITIALIZATION_ALARM
@@ -161,7 +165,8 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
   #endif
 ```
 
-- 然后进入循环，进行干净的初始化：
+## 子模块初始化
+然后进入循环，进行干净的初始化：
 ``` c
 // Grbl 在上电或系统终止后初始化循环。稍后，所有过程将会返回到这个循环进行干净地重新初始化。
   for(;;) {
@@ -203,4 +208,5 @@ volatile uint8_t sys_rt_exec_accessory_override; // 用于主轴/冷却覆盖的
   }
 ```
 
-- 然后进入grbl的主循环`protocol_main_loop()`,开始协议解析和后台任务处理。
+## 主循环
+然后进入grbl的主循环`protocol_main_loop()`,开始协议解析和后台任务处理。
