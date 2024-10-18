@@ -19,11 +19,11 @@ grbl源码精读与解析，代码行级中文注释，包含详细例程
     1. [软件硬件准备](./docs/prepare.md)
 
 1. [grbl源码解析](./docs/analysis/)
-    1. 开始
-    1. 架构
-    1. 入口
-    1. 串口
-    1. 协议
+    1. 开始(./docs/analysis/)
+    1. 架构(./docs/analysis/architecture.md)
+    1. 入口(./docs/analysis/main.md)
+    1. 协议(./docs/analysis/protocol.md)
+    1. 串口(./docs/analysis/serial.md)
     1. 核心系统
     1. gcode解析
     1. 运动规划
