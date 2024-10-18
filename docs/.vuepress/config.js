@@ -18,32 +18,32 @@ module.exports = {
       ['/', '首页'],
       ['/preface', '前言'],
       ['/prepare', '准备工作'],
-      {
-        title: '硬件基础',
-        path: '/hardware/',
-        children: [
-          {
-            title: 'Arduino硬件基础',
-            path: '/hardware/'
-          },
-          {
-            title: '输入输出',
-            path: '/hardware/gpio.md'
-          },
-          {
-            title: '串口',
-            path: '/hardware/serial.md'
-          },
-          {
-            title: '定时器',
-            path: '/hardware/titmer.md'
-          },
-          {
-            title: 'EEPROM',
-            path: '/hardware/eeprom.md'
-          }
-        ]
-      },
+      // {
+      //   title: '硬件基础',
+      //   path: '/hardware/',
+      //   children: [
+      //     {
+      //       title: 'Arduino硬件基础',
+      //       path: '/hardware/'
+      //     },
+      //     {
+      //       title: '输入输出',
+      //       path: '/hardware/gpio.md'
+      //     },
+      //     {
+      //       title: '串口',
+      //       path: '/hardware/serial.md'
+      //     },
+      //     {
+      //       title: '定时器',
+      //       path: '/hardware/titmer.md'
+      //     },
+      //     {
+      //       title: 'EEPROM',
+      //       path: '/hardware/eeprom.md'
+      //     }
+      //   ]
+      // },
       {
         title: 'GRBL源码解析',
         path: '/analysis/',
