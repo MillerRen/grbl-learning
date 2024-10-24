@@ -68,10 +68,10 @@ module.exports = {
             title: '串口',
             path: '/analysis/serial.md'
           },
-          {
-            title: '状态机',
-            path: '/analysis/system.md'
-          },
+          // {
+          //   title: '状态机',
+          //   path: '/analysis/system.md'
+          // },
           {
             title: 'G代码解析',
             path: '/analysis/gcode.md'
