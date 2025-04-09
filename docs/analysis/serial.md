@@ -220,3 +220,41 @@ void serial_write(uint8_t data) {
 }
 ```
 `serial_write`一个串口写入接口，这个接口主要被反馈报告程序调用，报告程序把字符串格式化之后传入这个接口，随后把传进来的数据放入发送队列，如果队列满了就一直等着，直到队列数据被串口取出留出空间，最后开启串口数据寄存器为空的中断，开启串口发送处理中断，由`ISR(SERIAL_UDRE)`将队列中的数据发送给上位机。
+
+### 辅助函数
+
+```c
+// 返回串口读缓冲区可用字节数。
+uint8_t serial_get_rx_buffer_available()
+{
+  uint8_t rtail = serial_rx_buffer_tail; // 临时变量暂存尾指针优化volatile
+  if (serial_rx_buffer_head >= rtail) { return(RX_BUFFER_SIZE - (serial_rx_buffer_head-rtail)); }
+  return((rtail-serial_rx_buffer_head-1));
+}
+```
+`serial_get_rx_buffer_available`一个用以返回串口接收环形队列空闲字节数的接口，它会被反馈报告程序调用。它采用`镜像法`把队列尺寸扩大2倍，虚拟出另一个队列，方便计算。
+
+```c
+// 返回串口读缓冲区已用的字节数。
+// 注意：已废弃。不再被使用除非在config.h中开启了经典状态报告。
+uint8_t serial_get_rx_buffer_count()
+{
+  uint8_t rtail = serial_rx_buffer_tail; // 临时变量暂存尾指针优化volatile
+  if (serial_rx_buffer_head >= rtail) { return(serial_rx_buffer_head-rtail); }
+  return (RX_BUFFER_SIZE - (rtail-serial_rx_buffer_head));
+}
+```
+返回串口接收队列已用的字节数。计算方法与上面类似。
+
+```c
+// 返回串口发送缓冲区已用的字节数。
+// 注意：没有用到除非为了调试和保证串口发送缓冲区没有瓶颈。
+uint8_t serial_get_tx_buffer_count()
+{
+  uint8_t ttail = serial_tx_buffer_tail; // Copy to limit multiple calls to volatile
+  if (serial_tx_buffer_head >= ttail) { return(serial_tx_buffer_head-ttail); }
+  return (TX_RING_BUFFER - (ttail-serial_tx_buffer_head));
+}
+
+```
+返回串口发送队列已用的字节数。计算方法与上面类似。
