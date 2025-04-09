@@ -150,7 +150,7 @@ ISR(SERIAL_UDRE)
 
 grbl中的环形队列使用数组实现，使用两个指针标记队头队尾（不过grbl这里是反的），通过保持一个数据单元为空策略判断队列满和空。我制作了一个[演示程序](/demos/ringbuffer.html)，想不明白的可以实操试一试更容易理解。
 
-### 接收缓冲器
+### 串口接收环形队列
 
 ``` c
 #ifndef RX_BUFFER_SIZE
@@ -162,7 +162,7 @@ uint8_t serial_rx_buffer_head = 0; // 定义串口接收环形队列头指针
 volatile uint8_t serial_rx_buffer_tail = 0; // 定义串口接收环形队列尾指针
 ```
 
-定义了一个`RX_BUFFER_SIZE`大小(128字节)的环形队列，并使用了队头和队尾两个指针记录队列状态。
+定义了一个`RX_BUFFER_SIZE`大小(128字节)的串口接收环形队列`serial_rx_buffer`，并使用了队头`serial_rx_buffer_head`和队尾`serial_rx_buffer_tail`两个指针记录队列状态。
 
 ``` c
 // 获取串口接收缓冲区的第一个字节。被主程序调用。
@@ -182,5 +182,41 @@ uint8_t serial_read()
   }
 }
 ```
-`serial_read`一个读取缓冲器的接口：这个接口在主循环中调用，它从串口接收一个字节就更新一下队尾的指针，因为使用的是数组，指针到达数组尾部要返回数组头部形成环形，如果队列是空的`serial_rx_buffer_head == tail`，就返回结束符号`0xff`。
+`serial_read`一个读取串口环形队列的接口：这个接口在主循环中调用，它从串口接收一个字节就更新一下队尾的指针，因为使用的是数组，指针到达数组尾部要返回数组头部形成环形，如果队列是空的`serial_rx_buffer_head == tail`，就返回结束符号`0xff`。
 
+### 串口发送环形队列
+
+```c
+#define TX_BUFFER_SIZE 104 // 定义串口发送缓冲区大小
+#define TX_RING_BUFFER (TX_BUFFER_SIZE+1) // 定义发送缓冲区队列长度
+
+int8_t serial_tx_buffer[TX_RING_BUFFER]; // 定义串口发送环形队列
+uint8_t serial_tx_buffer_head = 0; // 定义串口发送环形队列头指针
+volatile uint8_t serial_tx_buffer_tail = 0; // 定义串口发送环形队列尾指针
+```
+
+定义了一个大小为`TX_BUFFER_SIZE`(104)的串口发送环形队列`serial_tx_buffer`，并使用了队头`serial_tx_buffer_head`和队尾`serial_tx_buffer_tail`两个指针记录队列状态。
+
+```c
+// 写入一个字节到串口发送缓冲区。被主程序调用。
+void serial_write(uint8_t data) {
+  // 计算下一个头指针，如果已经到达最大值，移到开始，形成环形
+  uint8_t next_head = serial_tx_buffer_head + 1;
+  if (next_head == TX_RING_BUFFER) { next_head = 0; }
+
+  // 等待，直到缓冲区有空间
+  while (next_head == serial_tx_buffer_tail) {
+    // 代办：重构st_prep_tx_buffer()调用，在长打印期间在这里执行。
+    if (sys_rt_exec_state & EXEC_RESET) { return; } // 只检查终止防止死循环。
+  }
+
+  // 储存数据并向前移动头指针
+  serial_tx_buffer[serial_tx_buffer_head] = data;
+  serial_tx_buffer_head = next_head;
+
+  // 开启数据寄存器为空的中断，确保串口发送流运行。
+  // 只要环形队列有空间，就可以持续不断地从串口接收数据。
+  UCSR0B |=  (1 << UDRIE0);
+}
+```
+`serial_write`一个串口写入接口，这个接口主要被反馈报告程序调用，报告程序把字符串格式化之后传入这个接口，随后把传进来的数据放入发送队列，如果队列满了就一直等着，直到队列数据被串口取出留出空间，最后开启串口数据寄存器为空的中断，开启串口发送处理中断，由`ISR(SERIAL_UDRE)`将队列中的数据发送给上位机。
