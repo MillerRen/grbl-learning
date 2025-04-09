@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Ring Buffer Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .buffer-cell {
+            transition: all 0.3s ease;
+        }
+        .buffer-cell.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .buffer-cell.head {
+            border-color: #10B981;
+        }
+        .buffer-cell.tail {
+            border-color: #3B82F6;
+        }
+        .buffer-visualization {
+            height: 300px;
+            position: relative;
+        }
+        .circular-path {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 2px dashed #6B7280;
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+        }
+        .circular-pointer {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #3B82F6;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+        .circular-data {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #10B981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Ring Buffer Visualization</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                A circular buffer (or ring buffer) is a data structure that uses a single, fixed-size buffer as if it were connected end-to-end.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/2">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Linear Representation</h2>
+                    <div class="grid grid-cols-10 gap-2 mb-6" id="bufferGrid">
+                        <!-- Buffer cells will be inserted here by JavaScript -->
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <button id="enqueueBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                            <i class="fas fa-plus"></i> Enqueue
+                        </button>
+                        <button id="dequeueBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                            <i class="fas fa-minus"></i> Dequeue
+                        </button>
+                        <button id="clearBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">Buffer Size:</span>
+                            <span id="bufferSizeValue">10</span>
+                        </div>
+                        <input type="range" id="bufferSize" min="5" max="20" value="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/2">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Circular Visualization</h2>
+                    <div class="buffer-visualization relative mb-6" id="circularVisualization">
+                        <div class="circular-path"></div>
+                        <!-- Circular elements will be inserted here by JavaScript -->
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-4 h-4 rounded-full bg-green-500"></div>
+                                    <span>Head</span>
+                                </div>
+                                <div class="text-sm text-gray-600">Next element to dequeue</div>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+                                    <span>Tail</span>
+                                </div>
+                                <div class="text-sm text-gray-600">Next empty slot to enqueue</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Buffer Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Elements in Buffer</div>
+                    <div class="text-2xl font-bold" id="countDisplay">0</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Buffer Capacity</div>
+                    <div class="text-2xl font-bold" id="capacityDisplay">10</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Buffer Status</div>
+                    <div class="text-2xl font-bold" id="statusDisplay">Empty</div>
+                </div>
+            </div>
+            
+            <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-medium mb-2">Operation Log</h3>
+                <div class="h-32 overflow-y-auto text-sm" id="operationLog">
+                    <!-- Operation logs will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RingBuffer {
+            constructor(capacity) {
+                this.capacity = capacity;
+                this.buffer = new Array(capacity).fill(null);
+                this.head = 0;
+                this.tail = 0;
+                this.count = 0;
+                this.operations = [];
+            }
+
+            enqueue(value) {
+                if (this.isFull()) {
+                    this.logOperation(`Buffer full - overwriting oldest value`);
+                    this.head = (this.head + 1) % this.capacity;
+                    this.count--;
+                }
+                
+                this.buffer[this.tail] = value;
+                this.tail = (this.tail + 1) % this.capacity;
+                this.count++;
+                this.logOperation(`Enqueued value: ${value}`);
+            }
+
+            dequeue() {
+                if (this.isEmpty()) {
+                    this.logOperation(`Attempt to dequeue from empty buffer`);
+                    return null;
+                }
+                
+                const value = this.buffer[this.head];
+                this.buffer[this.head] = null;
+                this.head = (this.head + 1) % this.capacity;
+                this.count--;
+                this.logOperation(`Dequeued value: ${value}`);
+                return value;
+            }
+
+            isEmpty() {
+                return this.count === 0;
+            }
+
+            isFull() {
+                return this.count === this.capacity;
+            }
+
+            clear() {
+                this.buffer.fill(null);
+                this.head = 0;
+                this.tail = 0;
+                this.count = 0;
+                this.logOperation(`Buffer cleared`);
+            }
+
+            resize(newCapacity) {
+                const newBuffer = new Array(newCapacity).fill(null);
+                let elementsCopied = 0;
+                
+                while (!this.isEmpty() && elementsCopied < newCapacity) {
+                    newBuffer[elementsCopied] = this.dequeue();
+                    elementsCopied++;
+                }
+                
+                this.buffer = newBuffer;
+                this.capacity = newCapacity;
+                this.head = 0;
+                this.tail = elementsCopied % newCapacity;
+                this.count = elementsCopied;
+                this.logOperation(`Buffer resized to ${newCapacity}`);
+            }
+
+            logOperation(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.operations.push(`${timestamp}: ${message}`);
+                if (this.operations.length > 10) {
+                    this.operations.shift();
+                }
+            }
+        }
+
+        // DOM elements
+        const bufferGrid = document.getElementById('bufferGrid');
+        const circularVisualization = document.getElementById('circularVisualization');
+        const enqueueBtn = document.getElementById('enqueueBtn');
+        const dequeueBtn = document.getElementById('dequeueBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const bufferSize = document.getElementById('bufferSize');
+        const bufferSizeValue = document.getElementById('bufferSizeValue');
+        const countDisplay = document.getElementById('countDisplay');
+        const capacityDisplay = document.getElementById('capacityDisplay');
+        const statusDisplay = document.getElementById('statusDisplay');
+        const operationLog = document.getElementById('operationLog');
+
+        // Initialize buffer
+        let buffer = new RingBuffer(10);
+        let nextValue = 1;
+        
+        // Initialize UI
+        function initializeBufferUI() {
+            // Clear existing UI
+            bufferGrid.innerHTML = '';
+            circularVisualization.innerHTML = '<div class="circular-path"></div>';
+            
+            // Create buffer cells
+            for (let i = 0; i < buffer.capacity; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'buffer-cell border-2 border-gray-200 rounded-lg h-12 flex items-center justify-center font-mono';
+                cell.textContent = buffer.buffer[i] !== null ? buffer.buffer[i] : '∅';
+                cell.dataset.index = i;
+                bufferGrid.appendChild(cell);
+            }
+            
+            // Update circular visualization
+            updateCircularVisualization();
+            
+            // Update info displays
+            updateInfoDisplays();
+        }
+
+        function updateBufferUI() {
+            // Update linear grid
+            const cells = bufferGrid.querySelectorAll('.buffer-cell');
+            cells.forEach((cell, i) => {
+                cell.textContent = buffer.buffer[i] !== null ? buffer.buffer[i] : '∅';
+                cell.classList.remove('bg-green-100', 'bg-blue-100', 'active');
+                
+                if (i === buffer.head && !buffer.isEmpty()) {
+                    cell.classList.add('bg-green-100', 'head');
+                }
+                
+                if (i === buffer.tail && !buffer.isFull()) {
+                    cell.classList.add('bg-blue-100', 'tail');
+                }
+            });
+            
+            // Update circular visualization
+            updateCircularVisualization();
+            
+            // Update info displays
+            updateInfoDisplays();
+        }
+
+        function updateCircularVisualization() {
+            // Clear existing visualization
+            circularVisualization.innerHTML = '<div class="circular-path"></div>';
+            
+            // Add head pointer
+            const headAngle = (buffer.head / buffer.capacity) * 2 * Math.PI - Math.PI/2;
+            const headX = 50 + 40 * Math.cos(headAngle);
+            const headY = 50 + 40 * Math.sin(headAngle);
+            
+            const headPointer = document.createElement('div');
+            headPointer.className = 'circular-pointer';
+            headPointer.style.left = `${headX}%`;
+            headPointer.style.top = `${headY}%`;
+            headPointer.style.backgroundColor = '#10B981';
+            circularVisualization.appendChild(headPointer);
+            
+            // Add tail pointer
+            const tailAngle = (buffer.tail / buffer.capacity) * 2 * Math.PI - Math.PI/2;
+            const tailX = 50 + 40 * Math.cos(tailAngle);
+            const tailY = 50 + 40 * Math.sin(tailAngle);
+            
+            const tailPointer = document.createElement('div');
+            tailPointer.className = 'circular-pointer';
+            tailPointer.style.left = `${tailX}%`;
+            tailPointer.style.top = `${tailY}%`;
+            tailPointer.style.backgroundColor = '#3B82F6';
+            circularVisualization.appendChild(tailPointer);
+            
+            // Add data elements
+            for (let i = 0; i < buffer.capacity; i++) {
+                if (buffer.buffer[i] !== null) {
+                    const angle = (i / buffer.capacity) * 2 * Math.PI - Math.PI/2;
+                    const x = 50 + 40 * Math.cos(angle);
+                    const y = 50 + 40 * Math.sin(angle);
+                    
+                    const dataElement = document.createElement('div');
+                    dataElement.className = 'circular-data';
+                    dataElement.textContent = buffer.buffer[i];
+                    dataElement.style.left = `${x}%`;
+                    dataElement.style.top = `${y}%`;
+                    circularVisualization.appendChild(dataElement);
+                }
+            }
+        }
+
+        function updateInfoDisplays() {
+            countDisplay.textContent = buffer.count;
+            capacityDisplay.textContent = buffer.capacity;
+            
+            if (buffer.isEmpty()) {
+                statusDisplay.textContent = 'Empty';
+                statusDisplay.className = 'text-2xl font-bold text-gray-500';
+            } else if (buffer.isFull()) {
+                statusDisplay.textContent = 'Full';
+                statusDisplay.className = 'text-2xl font-bold text-red-500';
+            } else {
+                statusDisplay.textContent = `${Math.round((buffer.count / buffer.capacity) * 100)}% Full`;
+                statusDisplay.className = 'text-2xl font-bold text-yellow-500';
+            }
+            
+            // Update operation log
+            operationLog.innerHTML = buffer.operations.map(op => 
+                `<div class="py-1 border-b border-gray-200">${op}</div>`
+            ).join('');
+            operationLog.scrollTop = operationLog.scrollHeight;
+        }
+
+        function animateCell(index, className) {
+            const cell = bufferGrid.querySelector(`.buffer-cell[data-index="${index}"]`);
+            cell.classList.add('active', className);
+            
+            setTimeout(() => {
+                cell.classList.remove('active', className);
+            }, 500);
+        }
+
+        // Event listeners
+        enqueueBtn.addEventListener('click', () => {
+            buffer.enqueue(nextValue++);
+            updateBufferUI();
+            animateCell((buffer.tail - 1 + buffer.capacity) % buffer.capacity, 'bg-green-100');
+        });
+
+        dequeueBtn.addEventListener('click', () => {
+            const value = buffer.dequeue();
+            if (value !== null) {
+                updateBufferUI();
+                animateCell((buffer.head - 1 + buffer.capacity) % buffer.capacity, 'bg-red-100');
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            buffer.clear();
+            nextValue = 1;
+            initializeBufferUI();
+        });
+
+        bufferSize.addEventListener('input', () => {
+            const newSize = parseInt(bufferSize.value);
+            bufferSizeValue.textContent = newSize;
+            buffer.resize(newSize);
+            initializeBufferUI();
+        });
+
+        // Initialize
+        initializeBufferUI();
+    </script>
+</body>
+</html>
