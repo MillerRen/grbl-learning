@@ -1,6 +1,113 @@
 # 串口
 
-  grbl使用串口从上位机接收信息，并通过串口反馈给上位机，它使用各自的 `环形队列` 作为缓冲器，用以匹配不同系统的处理能力。
+  grbl使用串口从上位机接收信息，并通过串口反馈给上位机。共分为以下几部分：1.串口的配置，如波特率、停止位、校验位等；2.使用`环形队列` 作为缓冲器，用以匹配上位机和单片机的速度差异，分为输入缓冲器和输出缓冲器； 3.串口数据的简单分配，即分为实时响应和普通响应（放入队列）。
+
+## 串口配置 
+
+1. 串口初始化
+
+``` c
+// 串口初始化
+void serial_init()
+{
+  // 设置波特率
+  #if BAUD_RATE < 57600
+    uint16_t UBRR0_value = ((F_CPU / (8L * BAUD_RATE)) - 1)/2 ;
+    UCSR0A &= ~(1 << U2X0); // 关闭波特率倍增器。 - 只在Uno xxx上需要。
+  #else
+    uint16_t UBRR0_value = ((F_CPU / (4L * BAUD_RATE)) - 1)/2;
+    UCSR0A |= (1 << U2X0);  // 波特率高的波特率倍增器开启，即115200
+  #endif
+  // 波特率是比较大的数字，需要两个8位寄存器存放
+  UBRR0H = UBRR0_value >> 8; // 高8位右移到低8位，放入高8位寄存器，右移不会改变源数值
+  UBRR0L = UBRR0_value; // 第八位直接放入低8位寄存器
+
+  // 启用接收，发送和接收完成一个字节的中断
+  UCSR0B |= (1<<RXEN0 | 1<<TXEN0 | 1<<RXCIE0);
+
+  // 默认协议是8位，无奇偶校验，1个停止位
+}
+```
+**代码说明：** 
+1. **串口初始化** ：
+
+**UBRR0（串口波特率寄存器）：** 这是一个16位的寄存器，需要两次分别传入一个高字节`UBRR0H`和低字节`UBRR0L`,根据公式`UBBR0=(F_CPU/(4*BAUD_RATE)-1)/2`,F_CPU设置为16000000（跟硬件一致），BAUD_RATE配置为115200，得出结果为16.36111111111111取整后得到16，跟手册Table19-12中的波特率为115200时的值16一致（注1）。
+**UCSR0A（串口控制及状态寄存器A）：** 在高波特率时（>57600）使能的波特率倍增器`U2X0`以减少误差，但是为了保证在较老的`Arduino`设备上禁用波特率倍增器用以兼容它们的bootloader。
+
+**UCSR0B（串口控制及状态寄存器B）：** 使能串口接受`RXEN0`和串口发送功能`TXEN0`, 并使能串口接受完成中断`RXCIE0`，串口发送中断只在需要时开启。
+
+**UCSR0C（串口控制及状态寄存器C）：** `UMSEL0`(串口模式选择位)，默认为00即异步串口， `UPMSEL0`(串口校验模式选择位)，默认为00即默认无奇偶校验。`USBS0`(串口停止位模式选择位)默认为0即1停止位。`UCSZ0`(串口字符长度寄存器)，默认为011即8位字符。这些都是默认值，不需要手动再配置。
+
+2. **串口中断处理：** 
+
+
+
+``` c
+// 串口数据接收中断处理
+ISR(SERIAL_RX)
+{
+  uint8_t data = UDR0; // 从串口数据寄存器取出数据
+  uint8_t next_head; // 初始化下一个头指针
+
+  // 直接从串行流中选取实时命令字符。这些字符不被传递到主缓冲区，但是它们设置了实时执行的系统状态标志位。
+  switch (data) {
+    case CMD_RESET:         mc_reset(); break; // 调用运动控制重置程序
+    case CMD_STATUS_REPORT: system_set_exec_state_flag(EXEC_STATUS_REPORT); break; // 状态报告
+    case CMD_CYCLE_START:   system_set_exec_state_flag(EXEC_CYCLE_START); break; // 循环开始
+    case CMD_FEED_HOLD:     system_set_exec_state_flag(EXEC_FEED_HOLD); break; // 进给保持
+    default :
+      if (data > 0x7F) { // 实时控制都是扩展的ASCII字符
+        switch(data) {
+          case CMD_SAFETY_DOOR:   system_set_exec_state_flag(EXEC_SAFETY_DOOR); break; // 设置为 true
+          case CMD_JOG_CANCEL:   
+            if (sys.state & STATE_JOG) { // 阻止所有其他状态，调用运动取消。
+              system_set_exec_state_flag(EXEC_MOTION_CANCEL); 
+            }
+            break; 
+          #ifdef DEBUG
+            case CMD_DEBUG_REPORT: {uint8_t sreg = SREG; cli(); bit_true(sys_rt_exec_debug,EXEC_DEBUG_REPORT); SREG = sreg;} break;
+          #endif
+          // 以下为实时覆盖命令
+          case CMD_FEED_OVR_RESET: system_set_exec_motion_override_flag(EXEC_FEED_OVR_RESET); break;
+          case CMD_FEED_OVR_COARSE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_PLUS); break;
+          case CMD_FEED_OVR_COARSE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_MINUS); break;
+          case CMD_FEED_OVR_FINE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_PLUS); break;
+          case CMD_FEED_OVR_FINE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_MINUS); break;
+          case CMD_RAPID_OVR_RESET: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_RESET); break;
+          case CMD_RAPID_OVR_MEDIUM: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_MEDIUM); break;
+          case CMD_RAPID_OVR_LOW: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_LOW); break;
+          case CMD_SPINDLE_OVR_RESET: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_RESET); break;
+          case CMD_SPINDLE_OVR_COARSE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_PLUS); break;
+          case CMD_SPINDLE_OVR_COARSE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_MINUS); break;
+          case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
+          case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
+          case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
+          case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
+          #ifdef ENABLE_M7
+            case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
+          #endif
+        }
+        // 除了上面已知的实时命令，其他的ASCII扩展字符都被丢掉
+      } else { // 其他的字符被认为都是G代码，会被写入到主缓冲区
+        next_head = serial_rx_buffer_head + 1; // 更新临时头指针
+        if (next_head == RX_RING_BUFFER) { next_head = 0; }
+
+        // 写入到接收缓冲区，直到它满了为止。
+        if (next_head != serial_rx_buffer_tail) {
+          serial_rx_buffer[serial_rx_buffer_head] = data;
+          serial_rx_buffer_head = next_head;
+        }
+      }
+  }
+}
+```
+
+串口接收数据是在串口接收的中断中处理的,一旦串口中接收到了一个字节数据，就会触发中断，从串口数据寄存器中取出数据后，会做简单区分，这里有三种类型的数据：
+
+1. 实时命令，不会放入缓冲区
+2. 实时覆盖命令，能实时调整部分参数，也不会放入串口接收缓冲器
+3. 正常的G代码和系统命令，会放入串口接收缓冲器。
+
 
 ## 环形队列
 
@@ -94,28 +201,7 @@ grbl中的环形队列使用数组实现，使用两个指针标记队头队尾�
 
 grbl现在默认的波特率是115200，现在电脑和单片机的性能已经够好，没必要再使用9600了，并且这个速度对已经足够用了。根据官方给出的波特率计算公式计算得出`ubrrn = fosc/(8*baud)-1。16000000/(8*115200)-1 = 16.36111111111111`取整后得到值为16(查表也能得到)，由于计算出来的值有可能大于8位所以需要两个8位寄存器接收波特率值,高波特率需要开启倍频。默认的8位无校验位1停止位就可以了，没必要重新配置。最后使能串口接收和串口发送中断。
 
-``` c
-// 串口初始化
-void serial_init()
-{
-  // 设置波特率
-  #if BAUD_RATE < 57600
-    uint16_t UBRR0_value = ((F_CPU / (8L * BAUD_RATE)) - 1)/2 ;
-    UCSR0A &= ~(1 << U2X0); // 关闭波特率倍增器。 - 只在Uno xxx上需要。
-  #else
-    uint16_t UBRR0_value = ((F_CPU / (4L * BAUD_RATE)) - 1)/2;
-    UCSR0A |= (1 << U2X0);  // 波特率高的波特率倍增器开启，即115200
-  #endif
-  // 波特率是比较大的数字，需要两个8位寄存器存放
-  UBRR0H = UBRR0_value >> 8; // 高8位右移到低8位，放入高8位寄存器，右移不会改变源数值
-  UBRR0L = UBRR0_value; // 第八位直接放入低8位寄存器
 
-  // 启用接收，发送和接收完成一个字节的中断
-  UCSR0B |= (1<<RXEN0 | 1<<TXEN0 | 1<<RXCIE0);
-
-  // 默认协议是8位，无奇偶校验，1个停止位
-}
-```
 
 ## 接收缓冲器
 
@@ -152,68 +238,4 @@ uint8_t serial_read()
 }
 ```
 
-串口接收数据是在串口接收的中断中处理的,一旦串口中接收到了一个字节数据，就会触发中断，从串口数据寄存器中取出数据后，会做简单区分，这里有三种类型的数据：
 
-1. 实时命令，不会放入缓冲区
-2. 实时覆盖命令，能实时调整部分参数，也不会放入串口接收缓冲器
-3. 正常的G代码和系统命令，会放入串口接收缓冲器。
-
-``` c
-// 串口数据接收中断处理
-ISR(SERIAL_RX)
-{
-  uint8_t data = UDR0; // 从串口数据寄存器取出数据
-  uint8_t next_head; // 初始化下一个头指针
-
-  // 直接从串行流中选取实时命令字符。这些字符不被传递到主缓冲区，但是它们设置了实时执行的系统状态标志位。
-  switch (data) {
-    case CMD_RESET:         mc_reset(); break; // 调用运动控制重置程序
-    case CMD_STATUS_REPORT: system_set_exec_state_flag(EXEC_STATUS_REPORT); break; // 设置为 true
-    case CMD_CYCLE_START:   system_set_exec_state_flag(EXEC_CYCLE_START); break; // 设置为 true
-    case CMD_FEED_HOLD:     system_set_exec_state_flag(EXEC_FEED_HOLD); break; // 设置为 true
-    default :
-      if (data > 0x7F) { // 实时控制都是扩展的ASCII字符
-        switch(data) {
-          case CMD_SAFETY_DOOR:   system_set_exec_state_flag(EXEC_SAFETY_DOOR); break; // 设置为 true
-          case CMD_JOG_CANCEL:   
-            if (sys.state & STATE_JOG) { // 阻止所有其他状态，调用运动取消。
-              system_set_exec_state_flag(EXEC_MOTION_CANCEL); 
-            }
-            break; 
-          #ifdef DEBUG
-            case CMD_DEBUG_REPORT: {uint8_t sreg = SREG; cli(); bit_true(sys_rt_exec_debug,EXEC_DEBUG_REPORT); SREG = sreg;} break;
-          #endif
-          // 以下为实时覆盖命令
-          case CMD_FEED_OVR_RESET: system_set_exec_motion_override_flag(EXEC_FEED_OVR_RESET); break;
-          case CMD_FEED_OVR_COARSE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_PLUS); break;
-          case CMD_FEED_OVR_COARSE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_MINUS); break;
-          case CMD_FEED_OVR_FINE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_PLUS); break;
-          case CMD_FEED_OVR_FINE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_MINUS); break;
-          case CMD_RAPID_OVR_RESET: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_RESET); break;
-          case CMD_RAPID_OVR_MEDIUM: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_MEDIUM); break;
-          case CMD_RAPID_OVR_LOW: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_LOW); break;
-          case CMD_SPINDLE_OVR_RESET: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_RESET); break;
-          case CMD_SPINDLE_OVR_COARSE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_PLUS); break;
-          case CMD_SPINDLE_OVR_COARSE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_MINUS); break;
-          case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
-          case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
-          case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
-          case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
-          #ifdef ENABLE_M7
-            case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
-          #endif
-        }
-        // 除了上面已知的实时命令，其他的ASCII扩展字符都被丢掉
-      } else { // 其他的字符被认为都是G代码，会被写入到主缓冲区
-        next_head = serial_rx_buffer_head + 1; // 更新临时头指针
-        if (next_head == RX_RING_BUFFER) { next_head = 0; }
-
-        // 写入到接收缓冲区，直到它满了为止。
-        if (next_head != serial_rx_buffer_tail) {
-          serial_rx_buffer[serial_rx_buffer_head] = data;
-          serial_rx_buffer_head = next_head;
-        }
-      }
-  }
-}
-```
