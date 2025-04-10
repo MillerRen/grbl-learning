@@ -42,12 +42,12 @@ module.exports = {
             title: '协议-主循环',
             path: '/analysis/protocol.md'
           },
-          // {
-          //   title: '状态机',
-          //   path: '/analysis/system.md'
-          // },
           {
-            title: 'G代码解析',
+            title: '协议-状态报告',
+            path: '/analysis/report.md'
+          },
+          {
+            title: '协议-G代码解析',
             path: '/analysis/gcode.md'
           },
           {
