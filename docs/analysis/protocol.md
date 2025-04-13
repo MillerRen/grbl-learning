@@ -1,6 +1,6 @@
 # 协议-主循环 
 
-主循环`protocol_main_loop()`是在`protocol.c`中定义的一个接口，在`main.c`中被循环调用。主要的功能就是从 **GRBL串口接收环形队列** 读取字符串，经过处理后放入 **G代码行缓冲区**，然后交给**G代码解析器**，并且根据各个子模块状态机做出响应。
+主循环`protocol_main_loop()`是在`protocol.c`中定义的一个接口，在`main.c`中被循环调用。主要的功能就是从串口接收环形队列读取字符串，经过处理后放入G代码行缓冲区`line`，然后交给G代码执行器`gc_execute_line`或系统执行器`system_execute_line`，并且根据各个子模块状态机做出响应。
 
 ``` c
 // protocol.c
