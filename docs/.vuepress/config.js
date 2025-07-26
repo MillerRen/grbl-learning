@@ -38,10 +38,7 @@ module.exports = {
             title: "协议-主循环",
             path: "/analysis/protocol.md",
           },
-          {
-            title: "协议-运行时",
-            path: "/analysis/runtime.md",
-          },
+          
           {
             title: "协议-G代码解析",
             path: "/analysis/gcode.md",
@@ -105,6 +102,14 @@ module.exports = {
           {
             title: "参数-保存",
             path: "/analysis/eeprom.md",
+          },
+          {
+            title: "系统-运行时",
+            path: "/analysis/runtime.md",
+          },
+          {
+            title: "系统-状态机",
+            path: "/analysis/state.md",
           },
         ],
       },
