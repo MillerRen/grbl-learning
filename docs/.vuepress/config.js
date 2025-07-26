@@ -31,7 +31,7 @@ module.exports = {
             path: "/analysis/main.md",
           },
           {
-            title: "串口",
+            title: "协议-串口",
             path: "/analysis/serial.md",
           },
           {
@@ -43,64 +43,68 @@ module.exports = {
             path: "/analysis/runtime.md",
           },
           {
-            title: "协议-状态报告",
-            path: "/analysis/report.md",
-          },
-          {
             title: "协议-G代码解析",
             path: "/analysis/gcode.md",
           },
           {
-            title: "运动控制",
+            title: "运动-控制",
             path: "/analysis/motion.md",
           },
           {
-            title: "运动规划",
+            title: "运动-规划",
             path: "/analysis/planner.md",
           },
           {
-            title: "加速度算法",
+            title: "运动-加减速",
             path: "/analysis/acceleration.md",
           },
           {
-            title: "bresenham插值算法",
+            title: "运动-差值",
             path: "/analysis/bresenham.md",
           },
           {
-            title: "运动执行-步进电机",
+            title: "运动-执行",
             path: "/analysis/stepper.md",
           },
           {
-            title: "主轴",
+            title: "附件-主轴",
             path: "/analysis/spindle.md",
           },
           {
-            title: "冷却",
+            title: "附件-冷却",
             path: "/analysis/coolant.md",
           },
           {
-            title: "限位开关",
+            title: "运动-限制",
             path: "/analysis/endstop.md",
           },
           {
-            title: "归位",
-            path: "/analysis/homing.md",
-          },
-          {
-            title: "对刀",
-            path: "/analysis/probe.md",
-          },
-          {
-            title: "安全-紧急事件",
+            title: "运动-安全",
             path: "/analysis/emergency.md",
           },
           {
-            title: "参数设置",
+            title: "运动-归位",
+            path: "/analysis/homing.md",
+          },
+          {
+            title: "运动-对刀",
+            path: "/analysis/probe.md",
+          },
+          {
+            title: "接口-报告",
+            path: "/analysis/report.md",
+          },
+          {
+            title: "接口-上位机",
+            path: "/analysis/interface.md",
+          },
+          {
+            title: "参数-设置",
             path: "/analysis/settings.md",
           },
           {
-            title: "上位机接口",
-            path: "/analysis/interface.md",
+            title: "参数-保存",
+            path: "/analysis/eeprom.md",
           },
         ],
       },
