@@ -23,7 +23,7 @@
  // 并且与制造商（Haas、Fanuc、Mazak等）提供的其他g代码解释器类似/相同。
  // 注意：模态组定义值必须是连续的，并且从零开始。
 #define MODAL_GROUP_G0 0 // [G4、G10、G28、G28.1、G30、G30.1、G53、G92、G92.1]非模态
-#define MODAL_GROUP_G1 1 // [G0，G1，G2，G3，G38,2，G38,3，G38,4，G38,5，G80]运动
+#define MODAL_GROUP_G1 1 // [G0，G1，G2，G3，G38.2，G38.3，G38.4，G38.5，G80]运动
 #define MODAL_GROUP_G2 2 // [G17、G18、G19]平面选择
 #define MODAL_GROUP_G3 3 // [G90，G91]距离模式
 #define MODAL_GROUP_G4 4 // [G91.1]电弧IJK距离模式
@@ -54,7 +54,7 @@
 #define NON_MODAL_SET_HOME_1 40 // G30.1（不要改变值）
 #define NON_MODAL_ABSOLUTE_OVERRIDE 53 // G53（不要改变值）
 #define NON_MODAL_SET_COORDINATE_OFFSET 92 // G92（不要改变值）
-#define NON_MODAL_RESET_COORDINATE_OFFSET 102 // G92。1（不要改变值）
+#define NON_MODAL_RESET_COORDINATE_OFFSET 102 // G92.1（不要改变值）
 
  // 模态组G1：运动模态
 #define MOTION_MODE_SEEK 0 // G0（默认值：必须为零）
@@ -62,9 +62,9 @@
 #define MOTION_MODE_CW_ARC 2 // G2（不改变值）
 #define MOTION_MODE_CCW_ARC 3 // G3（不要改变值）
 #define MOTION_MODE_PROBE_TOWARD 140 // G38.2（不要改变值）
-#define MOTION_MODE_PROBE_TOWARD_NO_ERROR 141 // G38。3（不要改变值）
+#define MOTION_MODE_PROBE_TOWARD_NO_ERROR 141 // G38.3（不要改变值）
 #define MOTION_MODE_PROBE_AWAY 142 // G38.4（不要改变值）
-#define MOTION_MODE_PROBE_AWAY_NO_ERROR 143 // G38。5（不要改变值）
+#define MOTION_MODE_PROBE_AWAY_NO_ERROR 143 // G38.5（不要改变值）
 #define MOTION_MODE_NONE 80 // G80（不要改变值）
 
  // 模态组G2：平面选择

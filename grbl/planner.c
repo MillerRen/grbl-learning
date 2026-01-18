@@ -83,7 +83,7 @@ static uint8_t plan_prev_block_index(uint8_t block_index)
   - block_buffer_planned: 指向正常流操作条件下最后一个优化规划块之后的第一个缓冲块。
     用于规划优化，方法是避免重新计算不会随添加新块而更改的规划器缓冲区部分，如上所述。
     此外，此块永远不能小于块缓冲区尾端，并且在一个周期中，当计划丢弃当前块（）例程遇到此要求时，将始终向前推并保持此要求。
-  注意：由于规划器仅对规划器缓冲区中的内容进行计算，因此一些具有大量短线段的运动（如G2/3圆弧或复杂曲线）可能移动缓慢。This is because there simply isn't  enough combined distance traveled in the entire buffer to accelerate up to the nominal speed and then  decelerate to a complete stop at the end of the buffer, as stated by the guidelines. 
+  注意：由于规划器仅对规划器缓冲区中的内容进行计算，因此一些具有大量短线段的运动（如G2/3圆弧或复杂曲线）可能移动缓慢。这是因为在整个缓冲区中的总运动距离不足以按照上述准则先加速到标称速度，再在缓冲区末端减速到完全停止。
   如果这种情况发生并成为麻烦，有几种简单的解决方案：
   (1) 最大化机器加速度。
     规划器将会在相同的组合距离内计算更高的速度剖面。

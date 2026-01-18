@@ -313,7 +313,7 @@
 // #define REPORT_ECHO_LINE_RECEIVED // 默认禁用。取消注释以启用。
 
 // 最小规划器连接速度。 设置规划器计划在每个缓冲区块连接处设置的默认最小连接速度，但从缓冲区的剩余部分开始和结束部分（始终为零）除外。
-//该值控制机器通过交叉点的速度，而不考虑加速度限制或相邻块线移动方向之间的角度。//This is useful for machines that can't tolerate the tool dwelling for a split second, i.e. 3d printers or laser cutters. 
+//该值控制机器通过交叉点的速度，而不考虑加速度限制或相邻块线移动方向之间的角度。这对于那些无法容忍刀具在交点处短暂停留的机器（例如 3D 打印机或激光切割机）很有用。
 //如果使用，该值不应远大于零或机器工作所需的最小值。
 #define MINIMUM_JUNCTION_SPEED 0.0 // (mm/min)
 
