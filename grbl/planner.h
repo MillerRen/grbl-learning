@@ -1,5 +1,5 @@
 /*
-  planner.c - 缓冲移动命令并管理加速度剖面计划
+  planner.h - 缓冲移动命令并管理加速度剖面计划
   Grbl的一部分
 
   版权所有 2011-2016 Sungeun K. Jeon for Gnea Research LLC

@@ -58,7 +58,7 @@
 #endif
 
 #ifdef DEFAULTS_SHERLINE_5400
-//描述：Sherline 5400磨机，配备三台NEMA 23科林KL23H256-21-8B 185盎司步进电机，由三台Pololu A4988步进电机驱动器驱动，每绕组1.5A，配备30V、6A电源。
+//描述：Sherline 5400铣床，配备三台NEMA 23科林KL23H256-21-8B 185盎司步进电机，由三台Pololu A4988步进电机驱动器驱动，每绕组1.5A，配备30V、6A电源。
   #define MICROSTEPS 2
   #define STEPS_PER_REV 200.0
   #define MM_PER_REV (0.050*MM_PER_INCH) // 0.050 inch/rev leadscrew
@@ -435,7 +435,7 @@
 #endif
 
 #ifdef DEFAULTS_ZEN_TOOLWORKS_7x7
-//描述：Zen Toolworks 7x7磨机，配备三个Shinano SST43D2121 65oz NEMA 17步进电机。
+//描述：Zen Toolworks 7x7铣床，配备三个Shinano SST43D2121 65oz NEMA 17步进电机。
 //丝杠不同于一些ZTW套件，其中大多数为1.25mm/rev，而不是8.0mm/rev。
 //由30V、6A电源和TI DRV8811步进电机驱动器驱动。
   #define MICROSTEPS 8

@@ -18,9 +18,9 @@
 //在绝对毫米坐标系下执行线性运动。
 //除非反向进给速度为真，否则进给速度以毫米/秒为单位。
 //那么进给率意味着运动应在（1分钟）/进给率时间内完成。
-//注：这是grbl 规划器的主要出口。
+//注：这是进入 grbl 规划器的主要入口。
 //所有直线运动（包括圆弧线段）在传递给规划器之前必须通过此例程。
-//mc_line和plan_buffer_line的分离主要是为了将非规划器类型的功能从规划器中分离出来，并使齿隙补偿或封闭圆集成简单直接。
+//mc_line和plan_buffer_line的分离主要是为了将非规划器类型的功能从规划器中分离出来，并使齿隙补偿或固定循环的集成简单直接。
 void mc_line(float *target, plan_line_data_t *pl_data)
 {
   //如果启用，请检查是否存在软限位冲突。在这里，所有从Grbl中的任何地方拾取的直线运动都到达这里。
@@ -116,7 +116,7 @@ void mc_arc(float *target, plan_line_data_t *pl_data, float *position, float *of
        请注意，当theta_per_segment大于~0.25 rad（14 deg）时，该近似值将开始累积数值漂移误差，并且连续使用该近似值而不进行几十次校正。
        这种情况极不可能发生，因为线段长度和theta_per_segment是由圆弧公差设置自动生成和缩放的。
        只有非常大的圆弧公差设置（对于CNC应用来说是不现实的）才会导致该数值漂移误差。
-       但是，最好将xxxxx从~4的低位设置为~20左右的高位，以避免触发操作，同时保持电生成的准确性。
+       但是，最好将 N_ARC_CORRECTION 从~4 的低位设置为~20 左右的高位，以避免三角函数运算，同时保持圆弧生成精度。
        此近似值还允许mc_arc立即将线段插入规划器，而无需计算cos（）或sin（）的初始开销。
        当电弧需要应用校正时，规划器应该已经赶上由初始mc_arc开销引起的滞后。
        当存在连续的圆弧运动时，这一点很重要。
@@ -158,7 +158,7 @@ void mc_arc(float *target, plan_line_data_t *pl_data, float *position, float *of
 
       mc_line(position, pl_data);
 
-      //在系统中止时，保持中间循环。运行时命令检查已由mc_line执行。
+      //系统中止时在圆弧中途退出。运行时命令检查已由mc_line执行。
       if (sys.abort) { return; }
     }
   }
@@ -178,7 +178,7 @@ void mc_dwell(float seconds)
 
 //执行归位循环以定位和设置机器零位。只有“$H”执行此命令。
 //注意：缓冲器中不应有任何运动，Grbl在执行回零循环前必须处于空闲状态。
-//这可以防止重新引导后出现错误的缓冲计划。
+//这可以防止归位之后出现错误的缓冲规划。
 void mc_homing_cycle(uint8_t cycle_mask)
 {
   // 如果已启用硬限制，则检查并中止归位循环。
@@ -222,7 +222,7 @@ void mc_homing_cycle(uint8_t cycle_mask)
   gc_sync_position();
   plan_sync_position();
 
-  //如果硬限制功能启用，则在复位循环后重新启用硬限制引脚更改寄存器。
+  //如果硬限制功能启用，则在归位循环后重新启用硬限制引脚更改寄存器。
   limits_init();
 }
 

@@ -1,5 +1,5 @@
 /*
-  probe.h - 与对刀方法有关的代码
+  probe.h - 与探测方法相关的代码
   Grbl的一部分
 
   版权所有 2011-2016 Sungeun K. Jeon for Gnea Research LLC
@@ -17,7 +17,7 @@
 
 //定义探测状态机的值。
 #define PROBE_OFF     0//探测已禁用或未使用。（必须为零。）
-#define PROBE_ACTIVE  1//激活观察输入引脚。
+#define PROBE_ACTIVE  1//持续监视输入引脚。
 
 //探针引脚初始化例行程序。
 void probe_init();

@@ -108,7 +108,7 @@ void coolant_set_state(uint8_t mode)
 }
 
 
-//用于设置冷却液状态的G代码解析器入口点。如果中止或检查模式处于活动状态，则强制规划器缓冲区同步并停止。
+//用于设置冷却液状态的G代码解析器入口点。强制进行规划器缓冲区同步；若处于中止或检查模式则立即返回。
 void coolant_sync(uint8_t mode)
 {
   if (sys.state == STATE_CHECK_MODE) { return; }

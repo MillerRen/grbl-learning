@@ -1,5 +1,5 @@
 /*
-  limits.c - 与限位开关和执行复位循环有关的代码
+  limits.c - 与限位开关和执行归位循环有关的代码
   Grbl的一部分
 
   版权所有 2011-2016 Sungeun K. Jeon for Gnea Research LLC
@@ -93,13 +93,13 @@ uint8_t limits_get_state()
 
 //由于Arduino微控制器在检测管脚变化时不保留任何状态信息，因此不可能可靠地判断管脚抖动的状态。
 //如果我们轮询ISR中的管脚，如果开关抖动，您可能会错过正确的读数。
-// 注意：不要将急停装置连接到限位引脚上，因为该中断在复位循环期间被禁用，并且不会正确响应。
+// 注意：不要将急停装置连接到限位引脚上，因为该中断在归位循环期间被禁用，并且不会正确响应。
 //根据用户要求或需要，可能会有一个特殊的急停引脚，但通常建议直接将急停开关连接到Arduino复位引脚，因为这是最正确的方法。
 #ifndef ENABLE_SOFTWARE_DEBOUNCE
   ISR(LIMIT_INT_vect) //默认值：限制引脚更改中断处理。
   {
     //如果已经处于报警状态或正在执行报警，则忽略限位开关。
-    //当处于报警状态时，Grbl应已重置或将强制重置，因此规划器和串行缓冲区中的任何等待运动都将被清除，新发送的块将被锁定，直到重新定位循环或终止锁定命令。
+    //当处于报警状态时，Grbl应已重置或将强制重置，因此规划器和串行缓冲区中的任何等待运动都将被清除，新发送的块将被锁定，直到归位循环或终止锁定命令。
     //允许用户禁用硬限位设置，如果重置后不断触发其限位并移动其轴。
     if (sys.state != STATE_ALARM) {
       if (!(sys_rt_exec_alarm)) {
@@ -134,7 +134,7 @@ uint8_t limits_get_state()
   }
 #endif
 
-//返回指定的循环轴，设置机器位置，并在完成后执行回拉运动。
+//使指定循环掩码内的轴归位，设置机器位置，并在完成后执行回拉运动。
 //归位是一种特殊的运动情况，涉及快速不受控停止，以定位限位开关的触发点。
 //快速停止由系统级轴锁定掩码处理，该掩码防止步进算法执行步进脉冲。
 // 归位运动通常会绕过正常操作中执行运动的过程。
@@ -144,7 +144,7 @@ void limits_go_home(uint8_t cycle_mask)
 {
   if (sys.abort) { return; } //如果已发出系统重置，则阻塞。
 
-  //初始化归位运动的平面数据结构。主轴和冷却液已禁用。
+  //初始化归位运动的规划数据结构。主轴和冷却液已禁用。
   plan_line_data_t plan_data;
   plan_line_data_t *pl_data = &plan_data;
   memset(pl_data,0,sizeof(plan_line_data_t));
@@ -247,7 +247,7 @@ void limits_go_home(uint8_t cycle_mask)
 
     //执行归位循环。规划器缓冲区应为空，以启动归位循环。
     pl_data->feed_rate = homing_rate; //设置当前归位速率。
-    plan_buffer_line(target, pl_data); // 传递给 mc_line(). 直接规划归位运动。
+    plan_buffer_line(target, pl_data); // 绕过 mc_line(). 直接规划归位运动。
 
     sys.step_control = STEP_CONTROL_EXECUTE_SYS_MOTION; //设置为执行归位运动并清除现有标志。
     st_prep_buffer(); //准备并填充新计划区块的段缓冲区。

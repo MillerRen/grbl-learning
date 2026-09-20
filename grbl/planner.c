@@ -24,14 +24,14 @@ static uint8_t block_buffer_planned;  //优化后的规划块的索引
 //定义规划器变量
 typedef struct {
   int32_t position[N_AXIS];          //刀具的规划器位置（绝对步长）。
-//对于需要多直线运动的运动，即圆弧、封闭圆和齿隙补偿，与g代码位置分开。
+//对于需要多直线运动的运动，即圆弧、固定循环和齿隙补偿，与g代码位置分开。
   float previous_unit_vec[N_AXIS];   //上一条路径线段的单位向量
   float previous_nominal_speed;  //前一路径线段的标称速度
 } planner_t;
 static planner_t pl;
 
 
-//返回环形缓冲区中下一个块的索引。也称为步进段缓冲。
+//返回环形缓冲区中下一个块的索引。也被步进段缓冲区调用。
 uint8_t plan_next_block_index(uint8_t block_index)
 {
   block_index++;
@@ -272,7 +272,7 @@ void plan_update_velocity_profile_parameters()
    注意：假设缓冲区可用。
    缓冲区检查由运动控制在更高级别上处理。
    换句话说，缓冲头永远不等于缓冲尾。  
-   此外，进给速度输入值有三种使用方式：如果反向进给速度为假，则作为正常进给速度；如果反向进给速度为真，则作为反向时间；如果进给速度值为负（且反向进给速度始终为假），则作为寻找/急流速度。
+   此外，进给速度输入值有三种使用方式：如果反向进给速度为假，则作为正常进给速度；如果反向进给速度为真，则作为反向时间；如果进给速度值为负（且反向进给速度始终为假），则作为快速定位/快移速度。
    系统运动条件告知计划员在始终未使用的块缓冲头中计划运动。
    它避免更改规划器状态并保留缓冲区，以确保后续gcode运动仍能正确规划，而步进器模块仅指向块缓冲头以执行特殊的系统运动。
    */
@@ -421,7 +421,7 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
     block_buffer_head = next_buffer_head;
     next_buffer_head = plan_next_block_index(block_buffer_head);
 
-    //最后，使用新块重新计算平面。
+    //最后，用新块重新计算运动规划。
     planner_recalculate();
   }
   return(PLAN_OK);

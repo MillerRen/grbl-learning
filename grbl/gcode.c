@@ -183,7 +183,7 @@ uint8_t gc_execute_line(char *line)
       case 3:
       case 38:
         // 检查是否在同一块上使用G10/28/30/92调用G0/1/2/3/38。
-        //  *G43。1也是一个轴命令，但没有以这种方式明确定义。
+            // *G43.1也是一个轴命令，但没有以这种方式明确定义。
         if (axis_command)
         {
           FAIL(STATUS_GCODE_AXIS_COMMAND_CONFLICT);
@@ -568,7 +568,7 @@ uint8_t gc_execute_line(char *line)
       // 注意：从G94切换到G93后，检查是否要传递F字似乎是多余的。
       // 如果进给速率值在每个反向时间块后总是重置为零且未定义，我们将完成完全相同的事情，因为使用此值的命令已经执行未定义的检查。
       // 这也将允许在该开关之后执行其他命令，而不会出现不必要的错误。
-      // 他的代码与上面的进给速度模式和下面设置的进给速度错误检查相结合。
+      // 此代码与上面的进给速度模式和下面设置的进给速度错误检查相结合。
       //[3.设定进给速度]：F为负（完成）
       //-在反时限模式下：始终隐式地将块完成前后的进给速率值归零。
       // 注意：如果处于G93模式或从G94切换到G93模式，只需将F值保持为初始化零或在块中传递F字值即可。
@@ -590,7 +590,7 @@ uint8_t gc_execute_line(char *line)
         }
         else
         {
-          gc_block.values.f = gc_state.feed_rate; // 推送最后状态进给速率
+          gc_block.values.f = gc_state.feed_rate; // 沿用上次状态的进给速率
         }
       } // 否则，从G93切换到G94，所以不要推最后状态进给速率。其未定义或传递的F字值。
     }
@@ -604,7 +604,7 @@ uint8_t gc_execute_line(char *line)
   }
   // bit_false(value_words,bit(WORD_S)); // 注：单义值词。在错误检查结束时设置。
 
-  //[5.选择工具]：不支持。只跟踪价值。T为负（完成）不是整数。大于最大刀具值。
+  //[5.选择工具]：不支持。仅跟踪刀具号数值。T为负（完成）不是整数。大于最大刀具值。
   // bit_false(value_words,bit(WORD_T)); // 注：单义值词。在错误检查结束时设置。
 
   //[6.更换工具]：不适用
@@ -670,7 +670,7 @@ uint8_t gc_execute_line(char *line)
   }
 
   //[13.刀具半径补偿]：不支持G41/42。错误，如果在G53激活时启用。
-  //[G40错误]：G2/3电弧在G40之后编程。禁用后的线性移动小于刀具直径。
+//[G40错误]：G2/3圆弧在G40之后编程。禁用后的线性移动小于刀具直径。
   // 注意：由于刀具半径补偿从未启用，这些G40错误不适用。Grbl支持G40
   // 仅为避免G40与g代码程序头一起发送时出错，以设置默认模式。
 
@@ -764,7 +764,7 @@ uint8_t gc_execute_line(char *line)
     else
     {
       coord_select = gc_block.modal.coord_select;
-    } // 指数P0作为活动坐标系
+    } // 将 P0 索引为当前活动坐标系
 
     // 注意：将参数数据存储在IJK值中。根据规则，它们不与此命令一起使用。
     if (!settings_read_coord_data(coord_select, gc_block.values.ijk))
@@ -904,7 +904,7 @@ uint8_t gc_execute_line(char *line)
       }
       break;
     case NON_MODAL_SET_HOME_0: // G28.1
-    case NON_MODAL_SET_HOME_1: // G30。1.
+    case NON_MODAL_SET_HOME_1: // G30.1
       //[G28.1/30.1错误]：刀具补偿已启用。
       // 注意：如果在此处传递轴单词，它们将被解释为隐式运动模式。
       break;
@@ -969,14 +969,14 @@ uint8_t gc_execute_line(char *line)
         }
         break;
       case MOTION_MODE_CW_ARC:
-        gc_parser_flags |= GC_PARSER_ARC_IS_CLOCKWISE; // 按意思继续下一个
+          gc_parser_flags |= GC_PARSER_ARC_IS_CLOCKWISE; // 故意不 break，直落下一分支
       case MOTION_MODE_CCW_ARC:
         //[G2/3错误所有模式]：进给速度未定义。
 
         //[G2/3半径模式错误]：所选平面中没有轴字。目标点与当前点相同。
 
         //[G2/3偏移模式错误]：所选平面中没有轴字和/或偏移。到当前点的半径和到目标点的半径相差超过0.002mm（EMC def.0.5mm或0.005mm和0.1%半径）。
-        //[G2/3整圈模式错误]：不支持。轴心词存在。未编程任何偏移。P必须是整数。
+//[G2/3整圈模式错误]：不支持。轴字存在。未编程任何偏移。P必须是整数。
         // 注：圆弧跟踪需要半径和偏移，并通过错误检查预先计算。
 
         if (!axis_words)
@@ -1050,7 +1050,7 @@ uint8_t gc_execute_line(char *line)
           */
 
           // 首先，使用h_x2_div_d来计算4*h^2，以检查它是负值还是r更小
-          // 如果是这样的话，负数的sqrt是复杂的并且是错误的。
+          // 如果是这样的话，负数的 sqrt 是复数，会报错退出。
           float h_x2_div_d = 4.0 * gc_block.values.r * gc_block.values.r - x * x - y * y;
 
           if (h_x2_div_d < 0)
@@ -1079,7 +1079,7 @@ uint8_t gc_execute_line(char *line)
 
                                                                  C  <-- 当前位置
           */
-          // 负R表示“我想要一个行程超过180度的圆”（见图！），即使建议不要在一行g代码中生成这样的圆圈。
+          // 负R表示“我想要一个行程超过180度的圆”（想想看！），即使建议不要在一行g代码中生成这样的圆圈。
           // 通过反转h_x2_div_d的符号，圆的中心位于行程线的另一侧，因此我们得到了规定的不合适的长弧。
           if (gc_block.values.r < 0)
           {
@@ -1125,11 +1125,11 @@ uint8_t gc_execute_line(char *line)
             if (delta_r > 0.5)
             {
               FAIL(STATUS_GCODE_INVALID_TARGET);
-            } //[电弧定义误差]>0.5mm
+            } //[圆弧定义误差]>0.5mm
             if (delta_r > (0.001 * gc_block.values.r))
             {
               FAIL(STATUS_GCODE_INVALID_TARGET);
-            } //[电弧定义误差]>0.005mm和0.1%半径
+            } //[圆弧定义误差]>0.005mm和0.1%半径
           }
         }
         break;
@@ -1356,10 +1356,10 @@ uint8_t gc_execute_line(char *line)
   gc_state.modal.units = gc_block.modal.units;
 
   //[13.刀具半径补偿]：不支持G41/42
-  // 乔治亚州。情态动词切刀组件=gc块。情态动词切割机组件；//注意：由于始终禁用，因此不需要。
+  // gc_state.modal.cutter_comp = gc_block.modal.cutter_comp; // 注：刀具半径补偿始终禁用，无需此赋值。
 
-  //[14.刀具长度补偿]：G43。1和G49支持。不支持G43。
-  // 注意：如果支持G43，其操作与G43没有任何不同。1在执行方面。
+  //[14.刀具长度补偿]：G43.1和G49支持。不支持G43。
+  // 注意：如果支持G43，其执行过程与G43.1没有任何不同。
   // 错误检查步骤只是将偏移值加载到块XYZ值数组的正确轴中。
   if (axis_command == AXIS_COMMAND_TOOL_LENGTH_OFFSET)
   { // 表示更改。
@@ -1456,7 +1456,7 @@ uint8_t gc_execute_line(char *line)
       }
       else
       {
-// 注：gc_块。价值观xyz从mc_probe_循环返回，并带有更新的位置值。
+// 注：gc_block.values.xyz 由 mc_probe_cycle 返回，并带有更新后的位置值。
 // 所以成功探测循环后，机器位置和返回值应相同。
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
         pl_data->condition |= PL_COND_FLAG_NO_FEED_OVERRIDE;
@@ -1545,7 +1545,7 @@ uint8_t gc_execute_line(char *line)
 /*
   不支持：
 
-  - 封闭圆
+  - 固定循环
   - 刀具半径补偿
   - A,B,C-轴
   - 表达式的求值
@@ -1563,6 +1563,6 @@ uint8_t gc_execute_line(char *line)
 组8={G43}刀具长度偏移（支持G43.1/G49）
 组8={M7*}启用喷雾冷却液（*编译选项）
 组9={M48、M49、M56*}启用/禁用覆盖开关（*编译选项）
-组10={G98，G99}返回模式屏蔽循环
+组10={G98，G99}返回模式固定循环
 组13={G61.1，G64}路径控制模式（支持G61）
 */

@@ -46,7 +46,7 @@ void st_prep_buffer();
 //当执行块由新计划更新时，由planner_recalculate（）调用。
 void st_update_plan_block_parameters();
 
-//如果在配置中启用了实时速率报告，则由实时状态报告调用。H
+//如果在配置中启用了实时速率报告，则由实时状态报告调用。
 float st_get_realtime_rate();
 
 #endif

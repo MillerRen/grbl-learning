@@ -44,7 +44,7 @@
 #define EXEC_ALARM_HOMING_FAIL_DUAL_APPROACH  10
 
 //覆盖位图。用于控制进给、快速、主轴和冷却液覆盖的实时位标志。
-//主轴/冷却液和进给/急流分为两个控制标志变量。
+//主轴/冷却液和进给/快速移动(rapids)分为两个控制标志变量。
 #define EXEC_FEED_OVR_RESET         bit(0)
 #define EXEC_FEED_OVR_COARSE_PLUS   bit(1)
 #define EXEC_FEED_OVR_COARSE_MINUS  bit(2)
@@ -128,7 +128,7 @@ typedef struct {
     uint8_t homing_axis_lock_dual;
   #endif
   uint8_t f_override;//进给速度覆盖值（以百分比为单位）
-  uint8_t r_override;//急流覆盖值（以百分比表示）
+  uint8_t r_override;//快速移动(rapids)覆盖值（以百分比表示）
   uint8_t spindle_speed_ovr;//主轴速度值（百分比）
   uint8_t spindle_stop_ovr;//跟踪主轴停止覆盖状态
   uint8_t report_ovr_counter;//跟踪何时向状态报告添加覆盖数据。
@@ -144,7 +144,7 @@ extern system_t sys;
 
 //注：如果出现问题，这些位置变量可能需要声明为易失性。
 extern int32_t sys_position[N_AXIS]; // 实时机器（比如原点）矢量位置，以步为单位。
-extern int32_t sys_probe_position[N_AXIS];//机器坐标和步骤中的最后一个探针位置。
+extern int32_t sys_probe_position[N_AXIS];//机器坐标下的最后一次探针位置（单位为步数）。
 
 extern volatile uint8_t sys_probe_state;//探测状态值。用于与步进式ISR协调探测周期。
 extern volatile uint8_t sys_rt_exec_state;//用于状态管理的全局实时执行器位标志变量。请参阅EXEC位掩码。

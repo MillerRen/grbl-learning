@@ -1,5 +1,5 @@
 /*
-  motion_control.c - 用于发出运动命令的高级接口
+  motion_control.h - 用于发出运动命令的高级接口
   Grbl的一部分
 
   版权所有 2011-2016 Sungeun K. Jeon for Gnea Research LLC

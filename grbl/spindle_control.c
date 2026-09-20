@@ -259,7 +259,7 @@ void spindle_stop()
 }
 
 
-//用于设置主轴状态的G代码解析器入口点。如果中止或检查模式处于活动状态，则强制规划器缓冲区同步并停止。
+//用于设置主轴状态的G代码解析器入口点。强制进行规划器缓冲区同步；若处于中止或检查模式则立即返回。
 #ifdef VARIABLE_SPINDLE
   void spindle_sync(uint8_t state, float rpm)
   {

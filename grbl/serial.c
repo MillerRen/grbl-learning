@@ -60,14 +60,14 @@ void serial_init()
   // 设置波特率
   #if BAUD_RATE < 57600
     uint16_t UBRR0_value = ((F_CPU / (8L * BAUD_RATE)) - 1)/2 ;
-    UCSR0A &= ~(1 << U2X0); // 关闭波特率倍增器。 - 旨在Uno xxx上需要。
+    UCSR0A &= ~(1 << U2X0); // 关闭波特率倍增器。 - 仅在Uno xxx上需要。
   #else
     uint16_t UBRR0_value = ((F_CPU / (4L * BAUD_RATE)) - 1)/2;
     UCSR0A |= (1 << U2X0);  // 波特率高的波特率倍增器开启，即115200
   #endif
   // 波特率是比较大的数字，需要两个8位寄存器存放
   UBRR0H = UBRR0_value >> 8; // 高8位右移到低8位，放入高8位寄存器，右移不会改变源数值
-  UBRR0L = UBRR0_value; // 第八位直接放入低8位寄存器
+  UBRR0L = UBRR0_value; // 低八位直接放入低8位寄存器
 
   // 启用接收，发送和接收完成一个字节的中断
   UCSR0B |= (1<<RXEN0 | 1<<TXEN0 | 1<<RXCIE0);
@@ -84,7 +84,7 @@ void serial_write(uint8_t data) {
 
   // 等待，直到缓冲区有空间
   while (next_head == serial_tx_buffer_tail) {
-    // 代办：重构st_prep_tx_buffer()调用，在长打印期间在这里执行。
+    // 代办：重构st_prep_buffer()调用，在长打印期间在这里执行。
     if (sys_rt_exec_state & EXEC_RESET) { return; } // 只检查终止防止死循环。
   }
 
@@ -152,7 +152,7 @@ ISR(SERIAL_RX)
         switch(data) {
           case CMD_SAFETY_DOOR:   system_set_exec_state_flag(EXEC_SAFETY_DOOR); break; // 设置为 true
           case CMD_JOG_CANCEL:   
-            if (sys.state & STATE_JOG) { // 阻止所有其他状态，调用运动取消。
+            if (sys.state & STATE_JOG) { // 阻止其他状态调用运动取消，只有点动状态可以。
               system_set_exec_state_flag(EXEC_MOTION_CANCEL); 
             }
             break; 
@@ -184,7 +184,7 @@ ISR(SERIAL_RX)
         next_head = serial_rx_buffer_head + 1; // 更新临时头指针
         if (next_head == RX_RING_BUFFER) { next_head = 0; }
 
-        // 写入到接收缓冲区，直到它满了为止。
+        // 除非缓冲区已满,否则写入到接收缓冲区。
         if (next_head != serial_rx_buffer_tail) {
           serial_rx_buffer[serial_rx_buffer_head] = data;
           serial_rx_buffer_head = next_head;

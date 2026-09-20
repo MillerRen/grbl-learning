@@ -1,5 +1,5 @@
 /*
-  protocol.h - 控制Grbl执行协议和过程
+  protocol.c - 控制Grbl执行协议和过程
   Grbl 的一部分
 
   版权所有 2011-2016 Sungeun K. Jeon for Gnea Research LLC
@@ -67,8 +67,8 @@ void protocol_main_loop()
   uint8_t c; // 声明放字符的变量
   for (;;) { // 无限循环
 
-    // 处理一行从串口缓冲区到来的数据，如果数据可用的话。通过溢出空格和注释执行一个初始的过滤，并且大写所有字母。
-    while((c = serial_read()) != SERIAL_NO_DATA) { // 从串口读取一个字节，直到遇到结束符
+    // 处理一行从串口缓冲区到来的数据，如果数据可用的话。通过滤除空格和注释、并把所有字母转为大写来做一次初始过滤。
+    while((c = serial_read()) != SERIAL_NO_DATA) { // 从串口取一个字节;缓冲区暂时没有数据时返回 SERIAL_NO_DATA,循环随即结束
       if ((c == '\n') || (c == '\r')) { // 到达一行
 
         protocol_execute_realtime(); // 运行时命令检查点
@@ -76,7 +76,7 @@ void protocol_main_loop()
 
         line[char_counter] = 0; // 设置字符串结束符号
         #ifdef REPORT_ECHO_LINE_RECEIVED
-          report_echo_line_received(line); // 报告接收了多少行
+          report_echo_line_received(line); // 回显刚接收到的这一行(调试用)
         #endif
 
         // 直接执行格式化的输入行并报告执行状态
@@ -182,7 +182,7 @@ void protocol_auto_cycle_start()
 
 
 // 这个函数是给Grbl的实时命令执行系统的一个通用接口。它被主程序中一系列的检查点调用，主要是有可能有一个while
-// 循环等待一个缓冲区清空空间或一个上一次检查点执行时间超过一秒。这是一个异步执行实时命令(又叫多任务)的方式。
+// 循环等待一个缓冲区清空空间或一个上一次检查点执行时间超过零点几秒(不可忽略的时长)。这是一个异步执行实时命令(又叫多任务)的方式。
 // 这是一种使用grbl的g代码解析和规划功能异步执行实时命令（又称多任务）的方法。
 // 此函数还用作中断的接口，用于设置系统实时标志，其中只有主程序处理这些标志，无需定义计算成本更高的易失性变量。
 // 这还提供了一种受控的方式来执行某些任务，而不必拥有同一任务的两个或多个实例，
@@ -198,9 +198,7 @@ void protocol_execute_realtime()
 
 
 // 执行运行时命令，如果需要的话。这个函数主要操作是作为Grbl的状态机和控制一系列实时功能。
-// 注意：不要修改这里除非你明确直到自己在做什么！
-// 注意：不要修改这里除非你明确直到自己在做什么！
-// 注意：不要修改这里除非你明确直到自己在做什么！
+// 注意：不要修改这里，除非你明确知道自己在做什么！
 void protocol_exec_rt_system()
 {
   uint8_t rt_exec; // 临时变量防止多次调用不稳定
@@ -296,7 +294,7 @@ void protocol_exec_rt_system()
             }
             if (sys.state != STATE_SLEEP) { sys.state = STATE_SAFETY_DOOR; }
           }
-          // 注意:这个标志在门关闭时不会改变，不像sys.state。确保在门开关关闭并返回等待状态时执行停车动作。
+          // 注意:这个标志在门关闭时不会改变，不像sys.state。确保在门开关关闭并返回HOLD(保持)状态时执行停车动作。
           sys.suspend |= SUSPEND_SAFETY_DOOR_AJAR;
         }
         
@@ -460,7 +458,7 @@ void protocol_exec_rt_system()
           if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
           else { coolant_state |= COOLANT_FLOOD_ENABLE; }
         #endif
-        coolant_set_state(coolant_state); //报告计数器设置为“冷却液设置”状态（）。
+        coolant_set_state(coolant_state); //报告计数器在 coolant_set_state() 内设置。
         gc_state.modal.coolant = coolant_state;
       }
     }
@@ -634,7 +632,7 @@ static void protocol_exec_rt_suspend()
               #else
               if ((settings.flags & (BITFLAG_HOMING_ENABLE|BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
               #endif
-                //检查以确保运动不会在拉出位置内移动。
+                //检查以确保运动不会移动到拉出位置以下。
                 if (parking_target[PARKING_AXIS] <= PARKING_TARGET) {
                   parking_target[PARKING_AXIS] = retract_waypoint;
                   pl_data->feed_rate = PARKING_RATE;
@@ -666,7 +664,7 @@ static void protocol_exec_rt_suspend()
             }
 
             #ifdef PARKING_ENABLE
-              // 从回拉位置执行缓冲击运动到恢复位置
+              // 从回拉位置缓慢下压运动到恢复位置
               #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
               if (((settings.flags & (BITFLAG_HOMING_ENABLE|BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
                    (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {

@@ -26,7 +26,7 @@
 #define MODAL_GROUP_G1 1 // [G0，G1，G2，G3，G38.2，G38.3，G38.4，G38.5，G80]运动
 #define MODAL_GROUP_G2 2 // [G17、G18、G19]平面选择
 #define MODAL_GROUP_G3 3 // [G90，G91]距离模式
-#define MODAL_GROUP_G4 4 // [G91.1]电弧IJK距离模式
+#define MODAL_GROUP_G4 4 // [G91.1]圆弧IJK距离模式
 #define MODAL_GROUP_G5 5 // [G93，G94]进给速度模式
 #define MODAL_GROUP_G6 6 // [G20，G21]单位
 #define MODAL_GROUP_G7 7 // [G40]刀具半径补偿模式。不支持G41/42。
@@ -35,14 +35,14 @@
 #define MODAL_GROUP_G13 10 // [G61]控制模式
 
 #define MODAL_GROUP_M4 11 // [M0，M1，M2，M30]停止
-#define MODAL_GROUP_M7 12 // [M3、M4、M5]主轴调整
+#define MODAL_GROUP_M7 12 // [M3、M4、M5]主轴转动
 #define MODAL_GROUP_M8 13 // [M7，M8，M9]冷却液控制
 #define MODAL_GROUP_M9 14 // [M56]覆盖控制
 
  // 定义执行类型内模态组（运动、停止、非模态）的命令动作。
  // 解析器在内部使用，以了解要执行的命令。
  // 注意：一些宏值被指定为特定值，以使g代码状态报告和解析编译更小。由于328p上的闪存完全耗尽，因此有必要。
- // 虽然不理想，但只要小心使用状态为“不改变”的值，并检查两个报告即可。c和gcode。如果您需要更改它们，请查看它们是如何使用的。
+ // 虽然不理想，但只要小心使用状态为“不改变”的值，如需修改，请查阅 report.c 和 gcode.c 中它们的用法。
 
  // 模态组G0：非模态动作
 #define NON_MODAL_NO_ACTION 0 // （默认值：必须为零）
@@ -90,7 +90,7 @@
 #define FEED_RATE_MODE_UNITS_PER_MIN  0 // G94（默认值：必须为零）
 #define FEED_RATE_MODE_INVERSE_TIME   1 // G93（不要改变值）
 
- // 模态组G6：单元模态
+ // 模态组G6：单位模式
 #define UNITS_MODE_MM 0 // G21（默认值：必须为零）
 #define UNITS_MODE_INCHES 1 // G20（不改变值）
 
@@ -114,7 +114,7 @@
 #define TOOL_LENGTH_OFFSET_CANCEL 0 // G49（默认值：必须为零）
 #define TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC 1  //  G43.1
 
- // 模态组M9：超越控制
+ // 模态组M9：覆盖控制
 #ifdef DEACTIVATE_PARKING_UPON_INIT
   #define OVERRIDE_DISABLED  0 // （默认值：必须为零）
   #define OVERRIDE_PARKING_MOTION 1  //  M56
@@ -206,7 +206,7 @@ typedef struct {
 
   float spindle_speed; // 转速
   float feed_rate; // 毫米/分钟
-  uint8_t tool; // 跟踪刀具编号。没有用。
+  uint8_t tool; // 跟踪刀具编号。未使用。
   int32_t line_number; // 最后发送的行号
 
   float position[N_AXIS]; // 解释器认为工具在代码中的这一点上

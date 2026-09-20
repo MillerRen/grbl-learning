@@ -27,7 +27,7 @@
 /*这些EEPROM位在不同的设备上有不同的名称。*/
 #ifndef EEPE
 		#define EEPE  EEWE  //!< EEPROM程序/写入启用。
-		#define EEMPE EEMWE //!< EEPROM主程序/写入启用。
+		#define EEMPE EEMWE //!< EEPROM主写入使能（主控写使能）。
 #endif
 
 /*不幸的是，这两个未在设备包含文件中定义。*/
@@ -64,7 +64,7 @@ unsigned char eeprom_get_char( unsigned int addr )
  *
  *  \note  当此功能返回时，新的EEPROM值在EEPROM编程时间结束之前不可用。应轮询EECR中的EEPE位，以检查编程是否完成。
  *
- *  \note  函数的作用是：自动检查EEPE位。
+ *  \note  eeprom_get_char() 函数会自动检查 EEPE 位。
  *
  *  \param  addr  要写入的EEPROM地址。
  *  \param  new_value  新的EEPROM值。

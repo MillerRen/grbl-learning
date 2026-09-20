@@ -14,10 +14,10 @@
 
 #include "grbl.h"
 
-//设置从g代码解析器接收的有效j点动运动，检查软限制，并执行点动。
+//设置从g代码解析器接收的有效点动运动，检查软限制，并执行点动。
 uint8_t jog_execute(plan_line_data_t *pl_data, parser_block_t *gc_block)
 {
-  //初始化点动运动的规划器数据结构。注意：在点动期间，允许主轴和冷却液在覆盖时完整功能。
+  //初始化点动运动的规划器数据结构。注意：在点动期间，允许主轴和冷却液带倍率正常工作。
   pl_data->feed_rate = gc_block->values.f;
   pl_data->condition |= PL_COND_FLAG_NO_FEED_OVERRIDE;
   #ifdef USE_LINE_NUMBERS

@@ -27,7 +27,7 @@
   #endif
 #endif
 
-#define SERIAL_NO_DATA 0xff // 定义串口数据结束符号
+#define SERIAL_NO_DATA 0xff // 接收缓冲区无数据可读时的返回值(0xff)
 
 
 void serial_init(); // 串口初始化

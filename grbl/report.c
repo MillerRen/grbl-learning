@@ -23,7 +23,7 @@
 #include "grbl.h"
 
 
-//内部报告实用程序可减少flash，将重复性任务转化为功能。
+//内部报告实用程序可减少flash，将重复性任务转化为函数。
 void report_util_setting_prefix(uint8_t n) { serial_write('$'); print_uint8_base10(n); serial_write('='); }
 static void report_util_line_feed() { printPgmString(PSTR("\r\n")); }
 static void report_util_feedback_line_feed() { serial_write(']'); report_util_line_feed(); }

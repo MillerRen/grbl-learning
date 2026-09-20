@@ -44,7 +44,7 @@
 //定义步进驱动器启用/禁用输出引脚。
   #define STEPPERS_DISABLE_DDR    DDRB
   #define STEPPERS_DISABLE_PORT   PORTB
-  #define STEPPERS_DISABLE_BIT    0 // 一个数字管脚8
+  #define STEPPERS_DISABLE_BIT    0 // Uno 数字引脚 8
   #define STEPPERS_DISABLE_MASK   (1<<STEPPERS_DISABLE_BIT)
 
 //定义归位/硬限位开关输入引脚和限位中断向量。
@@ -74,7 +74,7 @@
   #define CONTROL_RESET_BIT         0//Uno模拟引脚0
   #define CONTROL_FEED_HOLD_BIT     1//Uno模拟引脚1
   #define CONTROL_CYCLE_START_BIT   2//Uno模拟引脚2
-  #define CONTROL_SAFETY_DOOR_BIT   1//Uno模拟引脚1注：安全门与馈电保持共用。由配置定义启用。
+  #define CONTROL_SAFETY_DOOR_BIT   1//Uno模拟引脚1注：安全门与进给保持共用该引脚。由配置定义启用。
   #define CONTROL_INT       PCIE1//引脚更改中断启用引脚
   #define CONTROL_INT_vect  PCINT1_vect
   #define CONTROL_PCMSK     PCMSK1//引脚改变中断寄存器
@@ -90,7 +90,7 @@
 
   #if !defined(ENABLE_DUAL_AXIS)
 
-    //定义也冷和雾化冷却液启用输出引脚。
+    //定义喷淋(flood)和雾化(mist)冷却液启用输出引脚。
     #define COOLANT_FLOOD_DDR   DDRC
     #define COOLANT_FLOOD_PORT  PORTC
     #define COOLANT_FLOOD_BIT   3//Uno模拟引脚3
@@ -168,7 +168,7 @@
 //注：冷却液从A3移动到A4。Arduino Uno上的双轴功能不支持冷却液雾。
       #define COOLANT_FLOOD_DDR   DDRB
       #define COOLANT_FLOOD_PORT  PORTB
-      #define COOLANT_FLOOD_BIT   5一个数字管脚13
+      #define COOLANT_FLOOD_BIT   5  // Uno 数字引脚 13
 
 //定义主轴启用输出引脚。
 //注意：主轴启用从D12移动到A3（旧的冷却液启用引脚）。主轴方向引脚已移除。
@@ -178,7 +178,7 @@
 //注：双轴功能不支持USE_SPINDLE_DIR_AS_ENABLE_PIN。
         #define SPINDLE_ENABLE_BIT    3//Uno数字管脚11
       #else
-        #define SPINDLE_ENABLE_BIT    4一个数字引脚12
+        #define SPINDLE_ENABLE_BIT    4  // Uno 数字引脚 12
       #endif
 
 //可变主轴配置如下。除非你知道自己在做什么，否则不要改变。
@@ -207,7 +207,7 @@
       #define SPINDLE_PWM_BIT   3//Uno数字管脚11
     #endif
 
-//注：此字段不支持可变主轴。
+//注：此扩展板不支持可变主轴。
     #ifdef DUAL_AXIS_CONFIG_CNC_SHIELD_CLONE
 //注：步进脉冲和方向引脚可能位于任何端口和输出引脚上。
       #define STEP_DDR_DUAL       DDRB

@@ -54,7 +54,7 @@
 #endif
 
 //为Grbl设置和参数定义EEPROM存储器地址位置值
-//注：Atmega328p具有1KB EEPROM。上半部分保留用于参数和启动脚本。下半部分包含全球设置和未来发展空间。
+//注：Atmega328p具有1KB EEPROM。上半部分保留用于参数和启动脚本。下半部分包含全局设置和未来发展空间。
 #define EEPROM_ADDR_GLOBAL         1U
 #define EEPROM_ADDR_PARAMETERS     512U
 #define EEPROM_ADDR_STARTUP_BLOCK  768U

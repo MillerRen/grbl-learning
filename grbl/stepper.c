@@ -37,7 +37,7 @@
 //注意：当前设置将ISR超速驱动至不超过16kHz，以平衡CPU开销和计时器精度。除非您知道自己在做什么，否则不要更改这些设置。
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
 	#define MAX_AMASS_LEVEL 3
-	//AMASS_LEVEL0：正常运行。没有积累。没有上限截止频率。从1级截止频率开始。
+	//AMASS_LEVEL0：正常运行。不使用AMASS。没有上限截止频率。从1级截止频率开始。
 	#define AMASS_LEVEL1 (F_CPU/8000) //Over-drives ISR（x2）。定义为F_CPU/（截止频率，单位为Hz）
 	#define AMASS_LEVEL2 (F_CPU/4000) // Over-drives ISR (x4)
 	#define AMASS_LEVEL3 (F_CPU/2000) // Over-drives ISR (x8)
@@ -158,7 +158,7 @@ typedef struct {
   float maximum_speed;    //执行块的最大速度。不总是标称速度。（毫米/分钟）
   float exit_speed;       //执行块退出速度（毫米/分钟）
   float accelerate_until; //从块端测量的加速度斜坡端（毫米）
-  float decelerate_after; //减速坡道起点从挡块末端测量（毫米）
+  float decelerate_after; //从块末端测量的减速段起点（毫米）
 
   #ifdef VARIABLE_SPINDLE
     float inv_rate;    //PWM激光模式用于加速分段计算。
@@ -542,7 +542,7 @@ void stepper_init()
   //配置计时器0：步进器端口重置中断
   TIMSK0 &= ~((1<<OCIE0B) | (1<<OCIE0A) | (1<<TOIE0)); //断开OC0输出和OVF中断。
   TCCR0A = 0; //正常运行
-  TCCR0B = 0; //在需要时禁用计时器0
+  TCCR0B = 0; //禁用定时器0（直到需要时才启用）
   TIMSK0 |= (1<<TOIE0); //启用定时器0溢出中断
   #ifdef STEP_PULSE_DELAY
     TIMSK0 |= (1<<OCIE0A); //启用定时器0比较匹配中断
@@ -865,7 +865,7 @@ void st_prep_buffer()
               break; //段完成。退出开关案例语句。继续边做边循环。
             }
           }
-          //否则，在挡块末端或强制减速末端。
+          //否则，在块末端或强制减速末端。
           time_var = 2.0*(mm_remaining-prep.mm_complete)/(prep.current_speed+prep.exit_speed);
           mm_remaining = prep.mm_complete;
           prep.current_speed = prep.exit_speed;
@@ -976,7 +976,7 @@ void st_prep_buffer()
     segment_buffer_head = segment_next_head;
     if ( ++segment_next_head == SEGMENT_BUFFER_SIZE ) { segment_next_head = 0; }
 
-    //更新相应的规划器和部门数据。
+    //更新相应的规划器与分段数据。
     pl_block->millimeters = mm_remaining;
     prep.steps_remaining = n_steps_remaining;
     prep.dt_remainder = (n_steps_remaining - step_dist_remaining)*inv_rate;

@@ -29,7 +29,7 @@ void system_init()
 
 
 //将控制管脚状态作为uint8位字段返回。每个位表示输入引脚状态，其中触发为1，未触发为0。
-// 应用反转掩码。字段组织由头文件中的控件索引定义。
+// 应用反转掩码。位字段的组织方式由头文件中的 CONTROL_PIN_INDEX 定义。
 uint8_t system_control_get_state()
 {
   uint8_t control_state = 0;
@@ -157,7 +157,7 @@ uint8_t system_execute_line(char *line)
       }
       break;
     default :
-      //阻止任何要求状态为空闲/报警的系统命令。（即EEPROM、复位）
+      //阻止任何要求状态为空闲/报警的系统命令。（即EEPROM、归位）
       if ( !(sys.state == STATE_IDLE || sys.state == STATE_ALARM) ) { return(STATUS_IDLE_ERROR); }
       switch( line[1] ) {
         case '#' : //打印Grbl NGC参数
@@ -274,7 +274,7 @@ void system_flag_wco_change()
 }
 
 
-//返回轴“idx”的机器位置。必须发送一个“步骤”数组。
+//返回轴“idx”的机器位置。必须传入一个“步数(step)”数组。
 //注意：如果电机步数和机器位置不在同一坐标系中，此函数将用作计算变换的中心位置。
 float system_convert_axis_steps_to_mpos(int32_t *steps, uint8_t idx)
 {

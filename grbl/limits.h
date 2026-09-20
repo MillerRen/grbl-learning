@@ -1,5 +1,5 @@
 /*
-  limits.h - 与限位开关和执行复位循环有关的代码
+  limits.h - 与限位开关和执行归位循环有关的代码
   Grbl的一部分
 
   版权所有 2011-2016 Sungeun K. Jeon for Gnea Research LLC

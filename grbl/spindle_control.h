@@ -23,7 +23,7 @@
 #define SPINDLE_STATE_CCW      bit(1)
 
 
-//初始化主轴销和硬件PWM（如果启用）。
+//初始化主轴引脚和硬件PWM（如果启用）。
 void spindle_init();
 
 //返回当前主轴输出状态。覆盖可能会改变它的编程状态。
@@ -40,7 +40,7 @@ uint8_t spindle_get_state();
 //使用方向、启用和主轴PWM设置主轴运行状态。
   void spindle_set_state(uint8_t state, float rpm); 
   
-//为步进电机ISR快速设置主轴PWM。也称为主轴设置状态（）。
+//为步进电机ISR快速设置主轴PWM。也被spindle_set_state（）调用。
 //注：328p PWM寄存器为8位。
   void spindle_set_speed(uint8_t pwm_value);
   

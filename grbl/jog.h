@@ -20,7 +20,7 @@
 //系统运动线数目必须为零。
 #define JOG_LINE_NUMBER 0
 
-//设置从g代码解析器接收的有效j点动运动，检查软限制，并执行点动。
+//设置从g代码解析器接收的有效点动运动，检查软限制，并执行点动。
 uint8_t jog_execute(plan_line_data_t *pl_data, parser_block_t *gc_block);
 
 #endif
